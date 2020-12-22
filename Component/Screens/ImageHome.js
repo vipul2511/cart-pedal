@@ -197,7 +197,6 @@ export default class ImageHome extends React.Component {
     }
   }
   shareProduct = () => {
-
     AsyncStorage.getItem('@product_id').then((id) => {
       if (id) {
         this.props.navigation.navigate('ShareWithScreen');

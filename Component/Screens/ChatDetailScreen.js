@@ -860,6 +860,49 @@ class ChatDetailScreen extends React.Component {
   onChangeText = (text) => {
     this.setState({message: text});
   };
+  NotificationCallPhone=(type)=> {
+    let formData = new FormData()
+      formData.append('user_id', this.state.userId)
+      formData.append('toid', this.props.navigation.state.params.userid)
+      formData.append('calltype',type)
+      formData.append('type',type)
+      console.log('form data==' + JSON.stringify(formData))
+    // var CartList = this.state.baseUrl + 'api-product/cart-list'
+      var RecentShare = "https://www.cartpedal.com/frontend/web/api-user/call-notification"
+      console.log('Add product Url:' + RecentShare)
+      console.log('form data general tab',JSON.stringify(formData));
+      fetch(RecentShare, {
+        method: 'Post',
+        headers: new Headers({
+          'Content-Type': 'multipart/form-data',
+          device_id: '1111',
+          device_token: this.state.fcmToken,
+          device_type: 'android',
+          Authorization: JSON.parse(this.state.userAccessToken), 
+        }),
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(responseData => {
+        // this.hideLoading();
+          if (responseData.code == '200') {
+            if(type==1){
+          this.props.navigation.navigate('VideoCall',{useravatar:this.props.navigation.state.params.useravatar}) 
+            }else{
+              if(type==0)this.props.navigation.navigate('VoiceCall',{useravatar:this.props.navigation.state.params.useravatar})
+            }
+            console.log('call notification',JSON.stringify(responseData));
+          } else {
+            console.log('call notification',JSON.stringify(responseData));
+          }
+          console.log('response object:', responseData)
+          console.log('User user ID==', JSON.stringify(responseData))
+        })
+        .catch(error => {;
+          console.error(error)
+        })
+        .done()
+      }
 
   deleteMessages = () => {
     const {fcmToken, userId, userAccessToken, forwardMessageIds} = this.state;
@@ -1028,9 +1071,6 @@ class ChatDetailScreen extends React.Component {
                       this.NotificationCallPhone(1);
                     }}
                     type="Feather"
-                    onPress={() => {
-                      this.props.navigation.navigate('VideoCall');
-                    }}
                     style={{color: '#2B2B2B', fontSize: 18, marginRight: 15}}
                   />
                   <Icon

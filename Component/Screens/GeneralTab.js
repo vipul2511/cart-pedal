@@ -397,7 +397,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
               {item.products[0].price}
             </Text>
           </View> 
-         {item.products[1]?(<TouchableOpacity style={styles.ImageContainer} >
+         {item.products[1]?(<View style={styles.ImageContainer} >
             <Image
               source={{uri:item.products[1].image}}
               style={styles.ImageContainer}></Image>
@@ -406,7 +406,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
               {'\u20B9'}
               {item.products[1].price}
             </Text>
-          </TouchableOpacity>):null }     
+          </View>):null }     
         </View>
         <View style={styles.hairline} />
       </ScrollView>

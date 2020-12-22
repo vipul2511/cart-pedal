@@ -8,12 +8,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:925496428725:android:fac94b03718fa4e00896fc",
+        "mobilesdk_app_id": "1:925496428725:android:50ec3c6eaee254e90896fc",
         "android_client_info": {
-          "package_name": "com.cart"
+          "package_name": "in.cartpedal"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "925496428725-iagsc9l8kjjr7q2nbek42skmev5g5478.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.cartpedal",
+            "certificate_hash": "a23d3d3bb6c55e2c04b5ac23cabeffc8621fe82a"
+          }
+        },
+        {
+          "client_id": "925496428725-pc2em6ndfr4u43quicd0ld5t0fvv9d2r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.cartpedal",
+            "certificate_hash": "d938288f9f34124f4d3e66bb8f60d18d73631aa3"
+          }
+        },
         {
           "client_id": "925496428725-ek7n2g2027rd82e149njpk259mdv7k19.apps.googleusercontent.com",
           "client_type": 3

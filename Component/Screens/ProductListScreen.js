@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-community/async-storage'
 import ImagePicker from 'react-native-image-picker'
 import Spinner from 'react-native-loading-spinner-overlay'
 import {tickIcon } from '../Component/Images';
+import { NavigationActions, withNavigation } from 'react-navigation';
 
 
 class ProductListScreen extends Component {
@@ -734,12 +735,20 @@ class ProductListScreen extends Component {
               }}
             />
           </ScrollView>
-         {!this.state.PlusIcon?(<TouchableOpacity onPress={this.uploadfun}>
+          <View>
+          <TouchableNativeFeedback onPress={this.uploadfun}>
             <Image
               source={require('../images/flatin_action_icon.png')}
               style={styles.FloatingActionStyle}
             />
-          </TouchableOpacity>):null}
+          </TouchableNativeFeedback>
+          </View>
+         {/* {!this.state.PlusIcon?(<TouchableOpacity onPress={()=>{  this.props.navigation.navigate('ProductMasterSaveScreen')}}>
+            <Image
+              source={require('../images/flatin_action_icon.png')}
+              style={styles.FloatingActionStyle}
+            />
+          </TouchableOpacity>):null} */}
         
        
       </SafeAreaView>
@@ -1403,4 +1412,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 })
-export default ProductListScreen
+export default withNavigation(ProductListScreen)

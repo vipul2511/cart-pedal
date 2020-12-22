@@ -256,14 +256,7 @@ class CartPlaceScreen extends Component {
       formData.append('type', 0)
       formData.append('order_id', orderID)
       formData.append('block_id',blockID )
-  
-  
       console.log('form data for ask==' + JSON.stringify(formData))
-  
-  
-     
-  
-  
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
       var AskForStautsURL = "https://www.cartpedal.com/frontend/web/api-product/order-status"
       console.log(' AskForStautsURL :' + AskForStautsURL)
@@ -285,24 +278,8 @@ class CartPlaceScreen extends Component {
         .then(responseData => {
           this.hideLoading();
           if (responseData.code == '200') {
-             //  this.props.navigation.navigate('StoryViewScreen')
-             //   Toast.show(responseData.message);
+            alert('Status has been successfully Asked');
              console.log('response data for ask status ',JSON.stringify(responseData));
-            //  this.setState({OderPlaceProduct:responseData.data});
-             // console.log("value",responseData.data[0].id);
-              // this.setState({block_id:responseData.data[0].id});
-              // console.log('fevtert========',responseData.data[0].favourite);
-              // this.setState({favourite:responseData.data[0].favourite})
-          //   if(responseData.data[0].avatar==null){
-          //     this.setState({avatar:''})
-          //   }else{
-          //     this.setState({avatar:responseData.data[0].avatar});
-          //   }
-          //  // this.SaveProductListData(responseData)
-          //  this.addQuantity(responseData.data);
-          } else {
-            // alert(responseData.data);
-            // alert(responseData.data.password)
             this.setState({ NoData: true });
           }
   

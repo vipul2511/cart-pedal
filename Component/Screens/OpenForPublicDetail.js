@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Dimensions,
   ScrollView
 } from 'react-native'
 import resp from 'rn-responsive-font'
@@ -19,6 +20,8 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import SeeMore from 'react-native-see-more-inline';
 import { NavigationActions, withNavigation } from 'react-navigation';
 
+let width=Dimensions.get('window').width;
+let height=Dimensions.get('window').height;
 
 
 
@@ -332,11 +335,11 @@ UserProfileCall() {
               <Text style={styles.PersonNameStyle}>{this.props.navigation.state.params.name}</Text>
              
               <View style={styles.PersonInfoContainer}>
-                
-              {this.state.about? (<SeeMore style={styles.PersonDescriptionStyle} numberOfLines={2}  linkColor="red" seeMoreText="read more" seeLessText="read less">
+              <View style={{width:width*0.7}}>
+              {this.state.about? (<SeeMore style={styles.PersonDescriptionStyle} numberOfLines={4}  linkColor="red" seeMoreText="read more" seeLessText="read less">
                         {this.state.about}
                   </SeeMore>):null}
-                  
+                  </View>
                     
                  
               
@@ -360,7 +363,7 @@ UserProfileCall() {
               renderItem={({ item }) =>(
                 <TouchableOpacity style={styles.listItem}
                 onPress={() => {
-                  this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image[0].image})
+                  this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image,name:this.props.navigation.state.params.name})
                 }}>
                 <Image source={{uri:item.image[0].image}} style={styles.image} />
                 <View style={styles.MultipleOptionContainer}>
