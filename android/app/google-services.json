@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "925496428725",
+    "firebase_url": "https://cartpadle-92406.firebaseio.com",
+    "project_id": "cartpadle-92406",
+    "storage_bucket": "cartpadle-92406.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925496428725:android:fac94b03718fa4e00896fc",
+        "android_client_info": {
+          "package_name": "com.cart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925496428725-ek7n2g2027rd82e149njpk259mdv7k19.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQfmmQ3BM-aISoaczeOmAufCnCtpNTuB0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925496428725-ek7n2g2027rd82e149njpk259mdv7k19.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
