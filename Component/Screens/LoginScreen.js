@@ -14,8 +14,6 @@ import Toast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-community/async-storage';
 
 console.disableYellowBox = true
-
-
 class LoginScreen extends Component {
   constructor(props) {
     super(props)
@@ -25,7 +23,7 @@ class LoginScreen extends Component {
       password: '',
       fcmtoken:'',
 
-      baseUrl: 'https://www.cartpedal.com/frontend/web/'
+      baseUrl: 'http://www.cartpedal.com/frontend/web/'
         // baseUrl: 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/',
     }
   }
@@ -85,7 +83,7 @@ class LoginScreen extends Component {
       headers: {
         'Content-Type': 'multipart/form-data',
         device_id: '1234',
-        device_token:this.state.fcmtoken,
+        device_token:'1111',
         device_type: 'android',
       },
       body: formData,
@@ -96,16 +94,19 @@ class LoginScreen extends Component {
         if (responseData.code == '200') {
           this.LoginOrNot();
           this.SaveLoginUserData(responseData);
-       
           console.log(JSON.stringify(responseData.data));
          // this.props.navigation.navigate('EditProductScreen')
          // Toast.show(responseData.message);
-         
-
-
         } else {
           // alert(responseData.data);
-          alert(responseData.data.password)
+          console.log(responseData.data)
+          if(responseData.data.password) alert(responseData.data.password);
+          if(responseData.data.mobile){
+            alert(responseData.data.mobile);
+          }
+          if(responseData.data.email) alert(responseData.data.email)
+          if(responseData.data.username) alert(responseData.data.username)
+          // alert(responseData.data.password)
         }
         console.log('response object:', responseData)
         console.log('User user ID==' + responseData.data.userid)

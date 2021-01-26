@@ -84,9 +84,9 @@ class HelpScreen extends Component {
               </View>
             
             </TouchableOpacity>
-            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('MyWebComponent')}}>
+            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('MyWebComponent',{screenSide:'abc'})}}>
               <View style={styles.Profile2ImageContainer}>
-                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('MyWebComponent')}}
+                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('MyWebComponent',{screenSide:'abc'})}}
                 >
                   <Image
                     source={require('../images/terms.png')}

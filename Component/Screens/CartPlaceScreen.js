@@ -14,7 +14,8 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-  ScrollView
+  ScrollView,
+  Share
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import CustomMenuIcon from './CustomMenuIcon'
@@ -23,7 +24,7 @@ import MenuIcon from './MenuIcon'
 import Spinner from 'react-native-loading-spinner-overlay';
 import AsyncStorage from '@react-native-community/async-storage'
 import SeeMore from 'react-native-see-more-inline';
-
+import firebase from 'react-native-firebase'
 
 
 class CartPlaceScreen extends Component {
@@ -55,7 +56,7 @@ class CartPlaceScreen extends Component {
         avatar:'',
         redIcon:require('../images/Heart_icon.png'),
         whiteIcon:require('../images/dislike.png'),
-        baseUrl: 'https://www.cartpedal.com/frontend/web/',
+        baseUrl: 'http://www.cartpedal.com/frontend/web/',
         data: [
           {
             ImagePerson: require('../images/RiyaJainImage.png'),
@@ -143,10 +144,72 @@ class CartPlaceScreen extends Component {
   actionOnRow(item) {
     console.log('Selected Item :', item)
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+link =async()=>{
+ const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+  // let url = await firebase.links().getInitialLink();
+  // console.log('incoming url', url);
+
+firebase.links()
+  .createDynamicLink(link)
+  .then((url) => {
+    console.log('the url',url);
+    this.onShare(url);
+  });
+}
+forwardlink =async(userid)=>{
+  const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+   .android.setPackageName('com.cart.android')
+   .ios.setBundleId('com.cart.ios');
+   // let url = await firebase.links().getInitialLink();
+   // console.log('incoming url', url);
+ 
+ firebase.links()
+   .createDynamicLink(link)
+   .then((url) => {
+     console.log('the url',url);
+    //  this.sendMessage(url,userid);
+    AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+      if(NumberFormat){
+        let numID=JSON.parse(NumberFormat)
+      //   this.setState({PhoneNumber:numID})
+  this.props.navigation.navigate('ForwardLinkScreen', {
+    fcmToken: this.state.fcmToken,
+    PhoneNumber: numID,
+    userId: this.state.userNo,
+    userAccessToken: this.state.userAccessToken,
+    msgids: url,
+  });
+}
+}));
+   });
+ }
 
   async componentDidMount() {
-    this.showLoading();
     this.focusListener = this.props.navigation.addListener("willFocus", () => {
+      this.showLoading();
     AsyncStorage.getItem('@access_token').then((accessToken) => {
       if (accessToken) {
         this.setState({ userAccessToken: accessToken });
@@ -273,7 +336,7 @@ class CartPlaceScreen extends Component {
     console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var CartList = "https://www.cartpedal.com/frontend/web/api-product/cart-list"
+    var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
     console.log('Add product Url:' + CartList)
     fetch(CartList, {
       method: 'Post',
@@ -531,7 +594,7 @@ class CartPlaceScreen extends Component {
     console.log('form data==' + JSON.stringify(formData));
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -600,7 +663,7 @@ class CartPlaceScreen extends Component {
         <View style={styles.ListMenuContainer}>
           <TouchableOpacity  style={styles.messageButtonContainer}  onPress={() => {
             console.log('id of user',item.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar, groupexit:false,groupId:0})
                       }}>
               <Image
                 source={require('../images/message_icon.png')}
@@ -641,10 +704,12 @@ class CartPlaceScreen extends Component {
               Toast.show('CLicked Block', Toast.LONG)
             }}
             option2Click={() => {
-              Toast.show('CLicked Share Link', Toast.LONG)
+              this.link()
+              // Toast.show('CLicked Share Link', Toast.LONG)
             }}
             option3Click={() => {
-              Toast.show('CLicked Forward Link', Toast.LONG)
+              this.forwardlink()
+              // Toast.show('CLicked Forward Link', Toast.LONG)
             }}
           />
         </View>
@@ -655,13 +720,13 @@ class CartPlaceScreen extends Component {
             <Image
               source={{ uri: item.products[0].image }}
               style={{width:95,height:133,borderRadius: resp(5),}}></Image>
-              <View style={{justifyContent:'center',alignItems:'center'}}>
+              {/* <View style={{justifyContent:'center',alignItems:'center'}}> */}
             <Text style={styles.itemNameStyle}>{item.products[0].name}</Text>
             <Text style={styles.itemPriceStyle}>
               {'\u20B9'}
               {item.products[0].price}
             </Text>
-            </View>
+            {/* </View> */}
           </View>
           {item.products[1]?( <View style={styles.ImageContainer1}>
             <Image
@@ -943,7 +1008,7 @@ const styles = StyleSheet.create({
   },
   itemBox: {
     flex:1,
-    height: resp(350),
+    height: resp(400),
     backgroundColor: 'white',
     flexDirection: 'column',
     shadowColor: 'black',
@@ -1088,7 +1153,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: resp(95),
     marginTop:resp(10),
-    height: resp(180),
+    height: resp(200),
     marginLeft: resp(5),
     marginRight:resp(5),
     borderRadius: resp(10),
@@ -1097,7 +1162,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: resp(95),
     marginTop:resp(10),
-    height: resp(180),
+    height: resp(200),
     // marginLeft: resp(5),
     marginRight:resp(5),
     borderRadius: resp(10),
@@ -1333,7 +1398,8 @@ const styles = StyleSheet.create({
     alignSelf:'flex-start',
     fontSize: resp(12),
     alignItems: 'center',
-    height:resp(20)
+    height:resp(20),
+    marginBottom:8
 
 
   },

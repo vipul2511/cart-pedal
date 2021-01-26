@@ -16,7 +16,7 @@ import Slider from 'react-native-slider';
 import {downloadFile, DocumentDirectoryPath} from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
-
+import Swipeable from 'react-native-gesture-handler/Swipeable'
 import ImageLoad from './ImageLoad';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -37,10 +37,12 @@ export const MessageComponent = ({
   appendMessages,
   removeMessages,
   copyText,
+  replyMessage
 }) => {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(initialize(message.sending));
   const [audio, setAudio] = useState({playing: false, duration: 0, current: 0});
+  const [audio1, setAudio1] = useState({playing: false, duration: 0, current: 0});
 
   const [opacity, setOpacity] = useState(0);
 
@@ -78,7 +80,48 @@ export const MessageComponent = ({
       return;
     });
   };
+  const onStartPlay1 = async (uri) => {
+    await audioRecorderPlayer.startPlayer(uri);
+    setAudio1({...audio1, playing: true});
 
+    audioRecorderPlayer.addPlayBackListener(async (e) => {
+      setAudio1((p) => ({
+        playing: p.playing,
+        current: e.current_position,
+        duration: e.duration,
+      }));
+      if (e.current_position === e.duration) {
+        setAudio1((p) => ({
+          duration: p.duration,
+          current: p.current,
+          playing: false,
+        }));
+        await audioRecorderPlayer.stopPlayer();
+        await audioRecorderPlayer.removePlayBackListener();
+      }
+      return;
+    });
+  };
+  // const LeftActions = () => {
+  //   const scale = dragX.interpolate({
+  //     inputRange: [0, 100],
+  //     outputRange: [0, 1],
+  //     extrapolate: 'clamp'
+  //   })
+  //     return (
+  //       <View
+  //         style={{ flex: 1, backgroundColor: 'blue', justifyContent: 'center' }}>
+  //         <Text
+  //           style={{
+  //             color: 'white',
+  //             paddingHorizontal: 10,
+  //             fontWeight: '600'
+  //           }}>
+  //           Left Action
+  //         </Text>
+  //       </View>
+  //     )
+  //    }
   const onPausePlay = async () => {
     await audioRecorderPlayer.pausePlayer();
     setAudio((p) => ({
@@ -87,7 +130,14 @@ export const MessageComponent = ({
       playing: false,
     }));
   };
-
+  const onPausePlay1 = async () => {
+    await audioRecorderPlayer.pausePlayer();
+    setAudio1((p) => ({
+      current: p.current,
+      duration: p.duration,
+      playing: false,
+    }));
+  };
   const downloadAndOpenDocument = async (uri) => {
     const parts = uri.split('/');
     const fileName = parts[parts.length - 1];
@@ -129,7 +179,10 @@ export const MessageComponent = ({
   // console.log(message);
 
   const {msg_type, fattach} = message;
-
+  //  if(msg_type==='info'){
+  //    let date=moment().format("DD-MM-YYYY") 
+  //    {date==message.date?}
+  //  }
   if (msg_type === 'text') {
     if (message.tmsg !== '') {
       content = (
@@ -138,6 +191,7 @@ export const MessageComponent = ({
             alignSelf: 'flex-start',
             marginVertical: 10,
           }}>
+           
           <View
             style={{
               backgroundColor: '#FFFFFF',
@@ -145,15 +199,31 @@ export const MessageComponent = ({
               elevation: 5,
               width: '70%',
             }}>
-            <Text
+              {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5,}} >
+              <Text style={{color:'#1EA81D'}}>{message.tname}</Text></View>):null}
+               <View style={{borderWidth:message.reply_msg?5:0,borderColor:'#fff'}}>
+               {message.reply_msg?<Text
               style={{
                 margin: 10,
-                color: '#2B2B2B',
+                color: 'red',
+                fontSize: 12,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:<Text
+              style={{
+                margin: 10,
+                color: 'black',
                 fontSize: 12,
               }}>
               {message.tmsg}
-            </Text>
+            </Text>}
+             {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:16,marginRight:5,color:'black'}}> {message.tmsg}</Text>
+          </View>:null}
           </View>
+          </View>
+      
+          <View style={{flexDirection:'row',}}>
           <Text
             style={{
               color: '#524D4D',
@@ -162,8 +232,17 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+           {message.time}
           </Text>
+          {/* <TouchableOpacity >
+          <Text style={{
+              color: '#1A73E8',
+              fontSize: 12,
+              marginLeft: '55%',
+              alignSelf: 'flex-end',
+            }}>Reply</Text>
+            </TouchableOpacity> */}
+            </View>
         </View>
       );
     }
@@ -177,14 +256,26 @@ export const MessageComponent = ({
               elevation: 5,
               width: '70%',
             }}>
-            <Text
+                <View style={{borderWidth:message.reply_msg?5:0,borderColor:'#fff'}}>
+                {message.reply_msg?<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 12,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:<Text
               style={{
                 margin: 10,
                 color: '#fff',
                 fontSize: 12,
               }}>
               {message.fmsg}
-            </Text>
+            </Text>}
+            {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:16,marginRight:5,color:'black'}}> {message.fmsg}</Text>
+          </View>:null}
+          </View>
           </View>
           <View
             style={{
@@ -199,7 +290,130 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+                {message.time}
+              {/* {moment(message.time).format('hh:mm')} */}
+            </Text>
+            {sending ? (
+              <Icon
+                type="MaterialCommunityIcons"
+                name="clock-time-nine"
+                style={{
+                  fontSize: 18,
+                  color: 'red',
+                }}
+              />
+            ) : (
+              <Icon
+                type="Ionicons"
+                name="checkmark-done-sharp"
+                style={{
+                  fontSize: 16,
+                  color: message.is_read === '1' ? '#34B7F1' : 'grey',
+                }}
+              />
+            )}
+          </View>
+        </View>
+      );
+    }
+  }
+  if (msg_type === 'link') {
+    if (message.tmsg !== '') {
+      content = (
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            marginVertical: 10,
+          }}>
+           
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+               <View style={{borderWidth:0,borderColor:'#fff'}}>
+            <Text
+              style={{
+                margin: 10,
+                color: '#2B2B2B',
+                fontSize: 12,
+              }}>
+              {message.tmsg}
+            </Text>
+          </View>
+          </View>
+      
+          <View style={{flexDirection:'row',}}>
+          <Text
+            style={{
+              color: '#524D4D',
+              fontSize: 10,
+              marginRight: 10,
+              marginTop: 5,
+              alignSelf: 'flex-start',
+            }}>
+           {message.time}
+          </Text>
+          {/* <TouchableOpacity >
+          <Text style={{
+              color: '#1A73E8',
+              fontSize: 12,
+              marginLeft: '55%',
+              alignSelf: 'flex-end',
+            }}>Reply</Text>
+            </TouchableOpacity> */}
+            </View>
+        </View>
+      );
+    }
+    if (message.fmsg !== '') {
+      content = (
+        <View style={{alignSelf: 'flex-end', marginVertical: 10}}>
+          <View
+            style={{
+              backgroundColor: 'red',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+                <View style={{borderWidth:0,borderColor:'#fff'}}>
+                {message.reply_msg?<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 12,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 12,
+              }}>
+              {message.fmsg}
+            </Text>}
+            {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black'}}> {message.fmsg}</Text>
+          </View>:null}
+          </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 5,
+            }}>
+            <Text
+              style={{
+                color: '#524D4D',
+                fontSize: 10,
+                paddingLeft: 8,
+              }}>
+                {message.time}
+              {/* {moment(message.time).format('hh:mm')} */}
             </Text>
             {sending ? (
               <Icon
@@ -281,13 +495,14 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+               {message.time}
+            {/* {moment(message.time).format('hh:mm')} */}
           </Text>
         </View>
       );
     }
     if (message.fmsg !== '') {
-      let contact = null;
+      let contact = null; 
       if (sending) {
         contact = JSON.parse(message.fmsg);
       } else {
@@ -347,7 +562,8 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+                {message.time}
+              {/* {moment(message.time).format('hh:mm')} */}
             </Text>
             {sending ? (
               <Icon
@@ -374,7 +590,7 @@ export const MessageComponent = ({
     }
   }
 
-  if (msg_type === 'image') {
+  if (msg_type === 'media' || msg_type === 'image') {
     if (message.tattach !== null && message.tattach !== '') {
       content = (
         <View style={{alignSelf: 'flex-start', marginVertical: 10}}>
@@ -385,6 +601,7 @@ export const MessageComponent = ({
               width: '70%',
             }}
           />
+          <View style={{borderWidth:5,borderColor:'#fff'}}>
           <Lightbox>
             <ImageLoad
               style={{
@@ -396,6 +613,10 @@ export const MessageComponent = ({
               source={{uri: message.tattach.attach}}
             />
           </Lightbox>
+          </View>
+          {message.tattach.caption!==""?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black',marginBottom:5}}>{message.tattach.caption}</Text>
+          </View>:null}
           <Text
             style={{
               color: '#524D4D',
@@ -404,7 +625,7 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+            {message.time}
           </Text>
         </View>
       );
@@ -419,6 +640,7 @@ export const MessageComponent = ({
               width: '70%',
             }}
           />
+          <View style={{borderWidth:5,borderColor:'#fff'}}>
           <Lightbox>
             <ImageLoad
               loading={sending}
@@ -426,11 +648,18 @@ export const MessageComponent = ({
                 height: 200,
                 width: 200,
                 alignSelf: 'center',
+                // borderRadius:2,
+                // borderColor:'white'
               }}
               loadingStyle={{size: 'large', color: 'gray'}}
               source={{uri: message.fattach.attach}}
             />
+           
           </Lightbox>
+          </View>
+          {message.fattach.caption!==""?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black',marginBottom:5}}>{message.fattach.caption}</Text>
+          </View>:null}
           <View
             style={{
               flexDirection: 'row',
@@ -444,7 +673,7 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+              {message.time}
             </Text>
             {sending ? (
               <Icon
@@ -520,7 +749,7 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+            {message.time}
           </Text>
         </View>
       );
@@ -577,7 +806,7 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+             {message.time}
             </Text>
             {sending ? (
               <Icon
@@ -625,9 +854,9 @@ export const MessageComponent = ({
             <Icon
               onPress={() => {
                 if (audio.playing) {
-                  onPausePlay();
+                  onPausePlay1();
                 } else {
-                  onStartPlay(message.tattach.attach);
+                  onStartPlay1(message.tattach.attach);
                 }
               }}
               name={audio.playing ? 'pause' : 'play'}
@@ -642,7 +871,7 @@ export const MessageComponent = ({
               <Slider
                 disabled
                 value={
-                  audio.duration === 0 ? 0 : audio.current / audio.duration
+                  audio1.duration === 0 ? 0 : audio1.current / audio1.duration
                 }
                 thumbStyle={{width: 10, height: 10}}
               />
@@ -656,7 +885,7 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+          {message.time}
           </Text>
         </View>
       );
@@ -723,7 +952,7 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+             {message.time}
             </Text>
             {sending ? (
               <Icon
@@ -795,7 +1024,7 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+           {message.time}
           </Text>
         </View>
       );
@@ -850,7 +1079,7 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+             {message.time}
             </Text>
             {sending ? (
               <Icon
@@ -918,7 +1147,7 @@ export const MessageComponent = ({
               marginTop: 5,
               alignSelf: 'flex-start',
             }}>
-            {moment(message.time).format('hh:mm')}
+            {message.time}
           </Text>
         </View>
       );
@@ -975,7 +1204,7 @@ export const MessageComponent = ({
                 fontSize: 10,
                 paddingLeft: 8,
               }}>
-              {moment(message.time).format('hh:mm')}
+             {message.time}
             </Text>
             {sending ? (
               <Icon
@@ -1020,6 +1249,9 @@ export const MessageComponent = ({
         if (selectedMode) {
           if (!inList) {
             appendMessages(message.id);
+            replyMessage({
+              text:message
+            })
             if (message.msg_type === 'text') {
               copyText({
                 id: message.id,
@@ -1035,6 +1267,9 @@ export const MessageComponent = ({
         if (!selectedMode) {
           toggleSelectedMode();
           appendMessages(message.id);
+          replyMessage({
+            text:message
+          })
           if (message.msg_type === 'text') {
             copyText({
               id: message.id,

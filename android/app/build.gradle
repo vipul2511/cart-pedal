@@ -131,12 +131,12 @@ android {
        javaMaxHeapSize "3g"
     }
     defaultConfig {
-        applicationId "com.cart"
+        applicationId "in.cartpedal"
         minSdkVersion rootProject.ext.minSdkVersion
          vectorDrawables.useSupportLibrary = true
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 6
+        versionName "6.0"
         multiDexEnabled true
     }
     splits {
@@ -198,14 +198,19 @@ android {
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:25.12.0')
     implementation 'com.google.firebase:firebase-analytics:17.3.0'
+    implementation 'com.google.firebase:firebase-messaging:20.1.0'
     //implementation project(':react-native-image-picker')
+  implementation 'com.android.support:design:27.1.0'
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    // implementation 'com.google.firebase:firebase-links'
     implementation project(':react-native-contacts')
+    implementation ("com.google.firebase:firebase-dynamic-links:19.1.1")
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'com.android.support:multidex:1.0.3'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 implementation ("com.google.firebase:firebase-messaging:17.3.4")
+   
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }

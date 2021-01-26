@@ -15,6 +15,7 @@ import {
   Modal,
   Dimensions,
   TouchableHighlight,
+  Share,
   ScrollView
 } from 'react-native'
 import resp from 'rn-responsive-font'
@@ -30,6 +31,7 @@ import Spinner from 'react-native-loading-spinner-overlay'
 import SeeMore from 'react-native-see-more-inline'
 import moment from 'moment'
 import ImageSelectDialog from '../Component/ImageSelectDialog';
+import firebase from 'react-native-firebase'
 
 //import all the components we are going to use.
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
@@ -71,7 +73,7 @@ class ProfileScreen extends Component {
         userId: '',
         access_token: '',
         productName: '',
-        baseUrl: 'https://www.cartpedal.com/frontend/web/',
+        baseUrl: 'http://www.cartpedal.com/frontend/web/',
         isProfileModalVisible:false,
         isModalVisible: false,
         isEditModalVisible: false,
@@ -226,7 +228,7 @@ class ProfileScreen extends Component {
 uploadCoverPhoto = (imageList) => {
   this.showLoading();
   console.log("raw data",JSON.stringify({user_id:this.state.userId,type:0,upload:imageList}))
-  var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-user/upload-image"
+  var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-user/upload-image"
   console.log('Add product Url:' + EditProfileUrl)
   fetch(EditProfileUrl, {
     method: 'Post',
@@ -263,7 +265,7 @@ uploadCoverPhoto = (imageList) => {
       JSON.stringify({user_id: this.state.userId, type: 0, upload: imageList}),
     )
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-user/upload-image'
+      'http://www.cartpedal.com/frontend/web/api-user/upload-image'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -482,7 +484,7 @@ uploadCoverPhoto = (imageList) => {
   };
   loggedUserstory = () => {
     // this.showLoading();
-    var urlprofile = `https://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -595,7 +597,7 @@ uploadCoverPhoto = (imageList) => {
       JSON.stringify({user_id: this.state.userId, type: 1, upload: this.state.newImageArr}),
     )
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-user/upload-image'
+      'http://www.cartpedal.com/frontend/web/api-user/upload-image'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -646,7 +648,7 @@ uploadCoverPhoto = (imageList) => {
     console.log('form data==' + JSON.stringify(formData))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var DeleteStoryURL =
-      'https://www.cartpedal.com/frontend/web/api-user/delete-story'
+      'http://www.cartpedal.com/frontend/web/api-user/delete-story'
     console.log('DeleteStory Url:' + DeleteStoryURL)
     fetch(DeleteStoryURL, {
       method: 'Post',
@@ -699,7 +701,7 @@ uploadCoverPhoto = (imageList) => {
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-user/edit-profile'
+      'http://www.cartpedal.com/frontend/web/api-user/edit-profile'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -761,7 +763,7 @@ uploadCoverPhoto = (imageList) => {
     // this.showLoading();
     let formData = new FormData()
     var urlprofile =
-      'https://www.cartpedal.com/frontend/web/api-user/view-profile?user_id='+this.state.userId
+      'http://www.cartpedal.com/frontend/web/api-user/view-profile?user_id='+this.state.userId
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -840,7 +842,7 @@ uploadCoverPhoto = (imageList) => {
   ProductListCall =()=> {
     console.log('access item', this.state.userAccessToken)
     var urlProduct =
-      'https://www.cartpedal.com/frontend/web/api-product/product-list?user_id=' +
+      'http://www.cartpedal.com/frontend/web/api-product/product-list?user_id=' +
       this.state.userId +
       '&type=2'
     console.log('urlProduct :' + urlProduct)
@@ -934,7 +936,7 @@ uploadCoverPhoto = (imageList) => {
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-product/viewer-list'
+      'http://www.cartpedal.com/frontend/web/api-product/viewer-list'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -983,6 +985,68 @@ uploadCoverPhoto = (imageList) => {
       })
       .done()
   }
+  forwardlink =async()=>{
+    const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+     .android.setPackageName('com.cart.android')
+     .ios.setBundleId('com.cart.ios');
+     // let url = await firebase.links().getInitialLink();
+     // console.log('incoming url', url);
+   
+   firebase.links()
+     .createDynamicLink(link)
+     .then((url) => {
+       console.log('the url',url);
+      //  this.sendMessage(url,userid);
+      AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+        if(NumberFormat){
+          let numID=JSON.parse(NumberFormat)
+        //   this.setState({PhoneNumber:numID})
+    this.props.navigation.navigate('ForwardLinkScreen', {
+      fcmToken: this.state.fcmtoken,
+      PhoneNumber: numID,
+      userId: this.state.userId,
+      userAccessToken: this.state.userAccessToken,
+      msgids: url,
+    });
+  }
+  }));
+     });
+   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+  link =async()=>{
+    const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+     .android.setPackageName('com.cart.android')
+     .ios.setBundleId('com.cart.ios');
+     // let url = await firebase.links().getInitialLink();
+     // console.log('incoming url', url);
+   
+   firebase.links()
+     .createDynamicLink(link)
+     .then((url) => {
+       console.log('the url',url);
+       this.onShare(url);
+     });
+   }
   viewFunc=()=>{
     console.log('covers',this.state.imagesCoverID);
     this.props.navigation.navigate('ViewProfileScreen', {images: this.state.covers});
@@ -995,9 +1059,9 @@ uploadCoverPhoto = (imageList) => {
         upload: data,
       }),
     )
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-user/add-story'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-user/add-story'
     console.log('Add product Url:' + otpUrl)
-    fetch('https://www.cartpedal.com/frontend/web/api-user/add-story', {
+    fetch('http://www.cartpedal.com/frontend/web/api-user/add-story', {
       method: 'Post',
       headers: {
         'Content-Type': 'application/json',
@@ -1162,10 +1226,12 @@ uploadCoverPhoto = (imageList) => {
                       color: 'white',
                     }}
                     option1Click={() => {
-                      Toast.show('CLicked Shared Link', Toast.LONG)
+                      this.link()
+                      // Toast.show('CLicked Shared Link', Toast.LONG)
                     }}
                     option2Click={() => {
-                      Toast.show('CLicked Forward Link', Toast.LONG)
+                      this.forwardlink()
+                      // Toast.show('CLicked Forward Link', Toast.LONG)
                     }}
                   />
                 </TouchableOpacity>
@@ -1216,9 +1282,9 @@ uploadCoverPhoto = (imageList) => {
                 onPress={() => this.storyPhotogallery()}>
                 <Image
                   source={
-                    this.state.loggeduserstory_avatar == null
+                    this.state.profilepic == null
                       ? this.state.pickedImage
-                      : {uri: this.state.loggeduserstory_avatar}
+                      : {uri: this.state.profilepic}
                   }
                   style={styles.ImageViewStyle}
                 />
@@ -1529,11 +1595,11 @@ uploadCoverPhoto = (imageList) => {
                       source={{uri: item.images[0].file_url}}
                       style={styles.image}
                     />
-                    <TouchableOpacity style={styles.MultipleOptionContainer}>
+                   {item.images[1]?( <TouchableOpacity style={styles.MultipleOptionContainer}>
                       <Image
                         source={require('../images/multipleImageIcon.png')}
                         style={styles.MultipleIconStyle}></Image>
-                    </TouchableOpacity>
+                    </TouchableOpacity>):null}
                     <View>
                       <Text style={styles.itemNameStyle}>{item.name}</Text>
                     </View>
@@ -1570,16 +1636,25 @@ uploadCoverPhoto = (imageList) => {
                                 color: 'white',
                               }}
                               option1Click={() => {
+                                
                                 Toast.show('CLicked Unshow Link', Toast.LONG)
                               }}
                               option2Click={() => {
-                                Toast.show('CLicked Share Link', Toast.LONG)
+                                this.link()
+                                // Toast.show('CLicked Share Link', Toast.LONG)
                               }}
                               option3Click={() => {
-                                Toast.show('CLicked Forward Link', Toast.LONG)
+                                this.forwardlink()
+                                // Toast.show('CLicked Forward Link', Toast.LONG)
                               }}
                               option4Click={() => {
-                                Toast.show('CLicked Edit Link', Toast.LONG)
+                                this.props.navigation.navigate('UpdateProduct', {
+                                  product_item: item,
+                                  images: item.images,
+                                  peopleListCount:item.shareto.people.length,
+                                  peopleContact:item.shareto.people,
+                                  sharedContactsName:item.shareto.shared
+                                })
                               }}
                             />
                           </TouchableOpacity>

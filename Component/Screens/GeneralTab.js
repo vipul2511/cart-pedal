@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   ScrollView,
+  Share,
    TouchableHighlight
 } from 'react-native'
 import resp from 'rn-responsive-font'
@@ -22,7 +23,8 @@ import Toast from 'react-native-simple-toast'
 import ReadMore from 'react-native-read-more-text'
 import MenuIcon from './MenuIcon'
 import Spinner from 'react-native-loading-spinner-overlay';
-import SeeMore from 'react-native-see-more-inline'
+import SeeMore from 'react-native-see-more-inline';
+import firebase from 'react-native-firebase';
 let width=Dimensions.get('window').width;
 let height=Dimensions.get('window').height;
 
@@ -41,6 +43,7 @@ class GeneralTab extends Component {
       block_id:'',
       userAccessToken:'',
       favourite:'',
+      PhoneNumber:'',
       fcmToken:'',
       currentUserMobile:'',
       appContacts:'',
@@ -67,7 +70,7 @@ class GeneralTab extends Component {
     this.showLoading()
     console.log('form data==' + JSON.stringify(numID))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -120,6 +123,12 @@ class GeneralTab extends Component {
     // if(this.props.navigation.isFocused()){    
 this.showLoading();
 console.log('component',this.props); 
+AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+  if(NumberFormat){
+    let numID=JSON.parse(NumberFormat)
+    this.setState({PhoneNumber:numID})
+  }
+}));
 AsyncStorage.getItem('@current_usermobile').then((mobile)=>{
   if(mobile){
     this.setState({currentUserMobile:JSON.parse(mobile)});
@@ -175,7 +184,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
     console.log('form data==' + JSON.stringify(formData));
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -230,7 +239,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
       console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var RecentShare = "https://www.cartpedal.com/frontend/web/api-user/recent-share"
+      var RecentShare = "http://www.cartpedal.com/frontend/web/api-user/recent-share"
       console.log('Add product Url:' + RecentShare)
       console.log('form data general tab',JSON.stringify(formData));
       fetch(RecentShare, {
@@ -282,7 +291,62 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
 
         .done()
       }
-
+      onShare = async (links) => {
+        try {
+          const result = await Share.share({
+            message:
+              `Get the product at ${links}`,
+              url:`${links}`
+          });
+    
+          if (result.action === Share.sharedAction) {
+            if (result.activityType) {
+              // shared with activity type of result.activityType
+            } else {
+              // shared
+            }
+          } else if (result.action === Share.dismissedAction) {
+            // dismissed
+          }
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+    link =async()=>{
+     const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+      .android.setPackageName('com.cart.android')
+      .ios.setBundleId('com.cart.ios');
+      // let url = await firebase.links().getInitialLink();
+      // console.log('incoming url', url);
+    
+    firebase.links()
+      .createDynamicLink(link)
+      .then((url) => {
+        console.log('the url',url);
+        this.onShare(url);
+      });
+    }
+    forwardlink =async(userid)=>{
+      const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+       .android.setPackageName('com.cart.android')
+       .ios.setBundleId('com.cart.ios');
+       // let url = await firebase.links().getInitialLink();
+       // console.log('incoming url', url);
+     
+     firebase.links()
+       .createDynamicLink(link)
+       .then((url) => {
+         console.log('the url',url);
+        //  this.sendMessage(url,userid);
+        this.props.navigation.navigate('ForwardLinkScreen', {
+          fcmToken: this.state.fcmToken,
+          PhoneNumber: this.state.PhoneNumber,
+          userId: this.state.userNo,
+          userAccessToken: this.state.userAccessToken,
+          msgids: url,
+        });
+       });
+     }
       navigateToSettings = () => {
         const navigateAction = NavigationActions.navigate({ routeName: 'OpenForPublicDetail' });
         this.props.navigation.dispatch(navigateAction);
@@ -330,7 +394,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
           <View style={{marginLeft: resp(0),width:width*0.8}}>
                   {item.about ? (
                     <SeeMore
-                      numberOfLines={2}
+                      numberOfLines={4}
                       linkColor='red'
                       seeMoreText='read more'
                       seeLessText='read less'>
@@ -343,7 +407,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
         <View style={styles.ListMenuContainer}>
           <TouchableOpacity style={styles.messageButtonContainer}  onPress={() => {
             console.log('id of user',item.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar, groupexit:false,groupId:0})
                       }}>
               <Image
                 source={require('../images/message_icon.png')}
@@ -377,10 +441,12 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
               Toast.show('CLicked Block Link', Toast.LONG)
             }}
             option2Click={() => {
-              Toast.show('CLicked Share Link', Toast.LONG)
+              this.link()
+              // Toast.show('CLicked Share Link', Toast.LONG)
             }}
             option3Click={() => {
-              Toast.show('CLicked Forward Link', Toast.LONG)
+              this.forwardlink()
+              // Toast.show('CLicked Forward Link', Toast.LONG)
             }}
           />
         </View>

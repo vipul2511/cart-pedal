@@ -24,6 +24,7 @@ export default class ProductMasterImage extends React.Component {
       spinner: '',
       showTick: null,
       fcmToken: '',
+      InnerImageList:[]
     }
   }
 
@@ -35,10 +36,14 @@ export default class ProductMasterImage extends React.Component {
         this.setState({ fcmToken: token });
         if(this.props.navigation.state.params){
           if(this.props.navigation.state.params.imageUri){
-            let item=this.props.navigation.state.params.imageUri
+            let item=this.props.navigation.state.params.imageUri;
+            let itemImage=this.props.navigation.state.params.productInner;
+            console.log('images of item',item);
             // this.state.imageList.push(item)
             let imageArr=this.state.imageList;
+            let InnerImage=this.state.InnerImageList;
             imageArr.push(item);
+            InnerImage.push(itemImage);
             this.setState({imageList:imageArr},()=>{
                 this.onImageSelect(0)
             })
@@ -133,9 +138,10 @@ export default class ProductMasterImage extends React.Component {
   renderImageList(item, index, separators) {
     console.log('selected', this.state.showTick);
     console.log('index inside', index);
+    console.log('item',item);
     return (
       <TouchableOpacity key={index} activeOpacity={1} onLongPress={() => this.onImageSelect(index)} style={[styles.imageListContainView, index == MAX_IMAGE_SIZE - 1 && { marginEnd: 10 }]}>
-        <Image style={styles.imageView} source={{ uri: this.state.imageList[index][0].path }} />
+        <Image style={styles.imageView} source={{ uri: item.path}} />
         <TouchableOpacity
           onPress={() => { this.removeImageFromList(index) }}
           style={[styles.imageOptionIcon, { position: 'absolute', top: 5, start: 5 }]}
@@ -162,7 +168,7 @@ export default class ProductMasterImage extends React.Component {
   }
 
   renderInnerImageList(item, index, separators) {
-    //    console.log('render Inner Images',item);
+       console.log('render Inner Images',item);
     return (
       <TouchableOpacity key={index} activeOpacity={1} style={[styles.imageListContainView, index == MAX_IMAGE_SIZE - 1 && { marginEnd: 10 }]}>
         <Image style={styles.innerImageView} source={{ uri: item.path }} />
@@ -178,10 +184,11 @@ export default class ProductMasterImage extends React.Component {
 
   rendorImageSlider(item, index) {
     console.log('big silder', this.state.imageList[this.state.selectedImageIndex][index].path);
+    console.log('big ', item);
     return (
       <View key={index} style={styles.imageSliderBig}>
         <View style={{ flex: 1 }}>
-          <Image style={{ flex: 1 }} source={{ uri: this.state.imageList[this.state.selectedImageIndex][index].path }} />
+          <Image style={{ flex: 1 }} source={{ uri: this.state.imageList[this.state.selectedImageIndex][index].path}} />
         </View>
       </View>
     )
@@ -260,7 +267,7 @@ export default class ProductMasterImage extends React.Component {
             <ScrollView horizontal={true}>
               <FlatList
                 horizontal={true}
-                data={this.state.imageList}
+                data={this.state.imageList[this.state.selectedImageIndex]}
                 numColumns={1}
                 renderItem={({ item, index, separators }) => (
                   this.renderImageList(item, index, separators)
@@ -316,7 +323,7 @@ export default class ProductMasterImage extends React.Component {
               />
               <FlatList
                 horizontal={true}
-                data={this.state.imageList[this.state.selectedImageIndex]}
+                data={this.state.InnerImageList[this.state.selectedImageIndex]}
                 numColumns={1}
                 renderItem={({ item, index, separators }) => (
                   this.renderInnerImageList(item, index, separators)

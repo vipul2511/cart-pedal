@@ -17,7 +17,7 @@ class ForgetOtpScreen extends Component {
       fcmToken:'',
       // edit_otp: '',
       otp: '',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/'
+      baseUrl: 'http://www.cartpedal.com/frontend/web/'
      // baseUrl: 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/'
     }
   }

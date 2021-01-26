@@ -18,6 +18,7 @@ import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.imagepicker.ImagePickerPackage;
 import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
 import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
+import io.invertase.firebase.links.RNFirebaseLinksPackage;
 public class MainApplication extends MultiDexApplication implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost =
@@ -37,6 +38,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
             new ReactNativeContacts();
             packages.add(new RNFirebaseNotificationsPackage());
             packages.add(new RNFirebaseMessagingPackage());
+            packages.add(new RNFirebaseLinksPackage());
           return packages;
         }
 
@@ -54,6 +56,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
     super.onCreate();
+    
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }

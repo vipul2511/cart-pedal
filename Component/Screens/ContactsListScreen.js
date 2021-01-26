@@ -105,7 +105,7 @@ class ContactsListScreen extends Component {
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'center',
-                        borderBottomWidth: 0.5,
+                        borderBottomWidth: 1,
                         color: 'grey',
                       }}>
                       <View

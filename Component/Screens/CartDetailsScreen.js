@@ -21,7 +21,7 @@ export default class CartDetailsScreen extends React.Component {
       
      
         this.state = {
-          baseUrl: 'https://www.cartpedal.com/frontend/web/',
+          baseUrl: 'http://www.cartpedal.com/frontend/web/',
           showFullImageView : false,
           viewMore : false,
           quantity:'',
@@ -150,7 +150,7 @@ export default class CartDetailsScreen extends React.Component {
 
       console.log('form data==' + formData)
     
-      var AddCartProductUrl ="https://www.cartpedal.com/frontend/web/api-product/add-cart"
+      var AddCartProductUrl ="http://www.cartpedal.com/frontend/web/api-product/add-cart"
     
       console.log('Add Card Url:' + AddCartProductUrl)
       fetch(AddCartProductUrl, {
@@ -207,7 +207,7 @@ export default class CartDetailsScreen extends React.Component {
      
       console.log('form data==' + JSON.stringify(formData));  
   
-      var PalceOderUrl ="https://www.cartpedal.com/frontend/web/api-product/place-order"
+      var PalceOderUrl ="http://www.cartpedal.com/frontend/web/api-product/place-order"
       // var PalceOderUrl = "https://www.cartpedal.com/frontend/web/api-product/place-order"
       console.log('placeOder:' + PalceOderUrl)
       fetch(PalceOderUrl, {
@@ -275,7 +275,7 @@ removeProductCall() {
       console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var RemoveCartListURL = "https://www.cartpedal.com/frontend/web/api-product/remove-cart-item"
+      var RemoveCartListURL = "http://www.cartpedal.com/frontend/web/api-product/remove-cart-item"
       console.log('Add product Url:' + RemoveCartListURL)
       fetch(RemoveCartListURL, {
         method: 'Post',
@@ -378,7 +378,7 @@ removeProductCall() {
              <TouchableOpacity style={[styles.bottomButtonStyle,{backgroundColor:'white'}]}
               onPress={() => {
                 this.AddToCart()}}>
-                <Text style={styles.bottomButtonTextStyle}>{AppConst.btnTitleAddToCart}</Text>
+                <Text style={styles.bottomButtonTextStyle}>{AppConst.btnTitleUpdateToCart}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={[styles.bottomButtonStyle,{backgroundColor:Colors.themeRed}]} onPress={this.singleProductPlaceOrder}>

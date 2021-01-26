@@ -12,6 +12,7 @@ import {
   PermissionsAndroid,
   Dimensions,
   Modal,
+  Share,
   ScrollView
 } from 'react-native'
 import resp from 'rn-responsive-font'
@@ -23,7 +24,9 @@ import {withNavigation} from 'react-navigation'
 import Spinner from 'react-native-loading-spinner-overlay'
 import ImagePicker from 'react-native-image-crop-picker';
 import ProfileCustomMenuIcon from './ProfileCustomMenuIcon'
-import firebase from './firebase'
+// import firebase from './firebase'
+// import dynamicLinks from '@react-native-firebase/dynamic-links';
+import firebase from 'react-native-firebase'
 import SeeMore from 'react-native-see-more-inline'
 import {BackHandler} from 'react-native'
 import {isNull} from 'lodash'
@@ -57,11 +60,12 @@ class DashBoardScreen extends Component {
       this.ProfileViewCall = this.ProfileViewCall.bind(this),
       this.state = {
         userName: '',
-        baseUrl: 'https://www.cartpedal.com/frontend/web/',
+        baseUrl: 'http://www.cartpedal.com/frontend/web/',
         userId: '',
         spinner: '',
         userAccessToken: '',
         isStoryModalVisible:false,
+        phonenumber:'',
         about: '',
         NoData: '',
         userProfileData: '',
@@ -136,7 +140,63 @@ class DashBoardScreen extends Component {
       this.handleBackButtonClick,
     )
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`,
+          
+      });
 
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+link =async()=>{
+ const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+  // let url = await firebase.links().getInitialLink();
+  // console.log('incoming url', url);
+
+firebase.links()
+  .createDynamicLink(link)
+  .then((url) => {
+    console.log('the url',url);
+    this.onShare(url);
+  });
+}
+forwardlink =async(userid)=>{
+  const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+   .android.setPackageName('com.cart.android')
+   .ios.setBundleId('com.cart.ios');
+   // let url = await firebase.links().getInitialLink();
+   // console.log('incoming url', url);
+ 
+ firebase.links()
+   .createDynamicLink(link)
+   .then((url) => {
+     console.log('the url',url);
+    //  this.sendMessage(url,userid);
+    this.props.navigation.navigate('ForwardLinkScreen', {
+      fcmToken: this.state.fcmtoken,
+      PhoneNumber: this.state.phonenumber,
+      userId: this.state.userId,
+      userAccessToken: this.state.userAccessToken,
+      msgids: url,
+    });
+   });
+ }
   componentWillUnmount () {
     BackHandler.removeEventListener(
       'hardwareBackPress',
@@ -195,6 +255,7 @@ class DashBoardScreen extends Component {
           let itemContacts=newArr.join(',')
           this.setState({newContacts:newArr.join(',')})
           this.ContactListall(phoneName);
+          this.setState({phonenumber:phoneName})
           AsyncStorage.setItem('@Phonecontacts',JSON.stringify(phoneName));
           });
           
@@ -217,7 +278,7 @@ class DashBoardScreen extends Component {
     console.log('form data==' + JSON.stringify(formData));
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -235,7 +296,7 @@ class DashBoardScreen extends Component {
       .then(responseData => {
         if (responseData.code == '200') {
           alert('User is blocked successfully');
-          this.ContactListall();
+          this.ContactListall(this.state.phonenumber);
           this.hideLoading();
         } else {
           //  this.setState({NoData:true});
@@ -263,7 +324,7 @@ class DashBoardScreen extends Component {
     // console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl,  {
       method: 'Post',
@@ -314,7 +375,7 @@ class DashBoardScreen extends Component {
 
   componentDidMount=async ()=> {
     this.focusListener = this.props.navigation.addListener("willFocus", () => {
-    this.showLoading();
+    // this.showLoading();
     this.requestReadContactsPermission();
     AsyncStorage.getItem('@fcmtoken').then(token => {
       if (token) {
@@ -397,15 +458,52 @@ if (notificationOpen) {
       }
     })
   }
+  sendMessage = (UrlLink,userID) => {
+    // console.log('user id', this.props.navigation.state.params.userid);
+    // this.setState({message: '', height: 40});
+    var raw = JSON.stringify({
+      user_id: this.state.userId,
+      toid: userID,
+      msg_type: 'text',
+      body: UrlLink,
+      reply_id: '0',
+      upload: [],
+    });
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        device_id: '1234',
+        device_token: this.state.fcmtoken,
+        device_type: 'android',
+        Authorization: JSON.parse(this.state.userAccessToken),
+      },
+      body: raw,
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        if (responseData.code === 200) {
+          alert('forward link has been sent');
+          // this.setState({visibleReply:true})
+          console.log('asda', responseData);
+        } else {
+          console.log('logged user stories' + JSON.stringify(responseData));
+        }
+      })
+
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   addStoryApi=(data)=>{
     this.showLoading();
     console.log( 'raw data====',JSON.stringify({
       
       user_id:this.state.userId,upload:data
     }));
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-user/add-story'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-user/add-story'
     console.log('Add product Url:' + otpUrl)
-     fetch('https://www.cartpedal.com/frontend/web/api-user/add-story', {
+     fetch('http://www.cartpedal.com/frontend/web/api-user/add-story', {
       method: 'Post',
       headers:{
         'Content-Type': 'application/json',
@@ -465,7 +563,7 @@ if (notificationOpen) {
     formData.append('contact',newContacts)
     console.log('form data recent share==' + JSON.stringify(formData))
     // var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-list'
-    var RecentShare = "https://www.cartpedal.com/frontend/web/api-user/recent-share"
+    var RecentShare = "http://www.cartpedal.com/frontend/web/api-user/recent-share"
     console.log('urlProduct :' + RecentShare)
     fetch(RecentShare, {
       method: 'Post',
@@ -497,7 +595,7 @@ if (notificationOpen) {
       .done()
   }
   loggedUserstory=()=>{
-    var urlprofile = `https://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -531,7 +629,7 @@ if (notificationOpen) {
       .done()
   }
   userStories=()=>{
-    var urlprofile = `https://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=0`
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=0`
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -573,7 +671,7 @@ if (notificationOpen) {
   ProfileViewCall () {
     let formData = new FormData()
     var urlprofile =
-      'https://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +this.state.userId
+      'http://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +this.state.userId
       this.state.userId
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
@@ -714,6 +812,7 @@ if (notificationOpen) {
           <View style={styles.BackButtonContainer}>
             <TouchableOpacity
               onPress={() => {
+                AsyncStorage.removeItem('@is_login')
                this.logOut()
               }}>
               <Text style={styles.backButtonStyle}>Log Out</Text>
@@ -782,9 +881,6 @@ if (notificationOpen) {
                     }}>
                  <Text style={styles.Options2ProfileModalStyle}> View Story</Text>
                    </TouchableOpacity>
-                
-                  
-                 
                 </View>
               </View>
             </Modal>
@@ -799,9 +895,9 @@ if (notificationOpen) {
                 >
                 <Image
                   source={
-                    this.state.loggeduserstory_avatar == null
+                    this.state.avatar == null
                       ? this.state.pickedImage
-                      : {uri: this.state.loggeduserstory_avatar}
+                      : {uri: this.state.avatar}
                   }
                   style={styles.ImageViewStyle}
                 />
@@ -910,11 +1006,12 @@ if (notificationOpen) {
                     }}
                     option1Click={() => {
                       // this.BlockUserCall()
-
-                      Toast.show('CLicked Shared Link', Toast.LONG)
+                       this.link()
+                      // Toast.show('CLicked Shared Link', Toast.LONG)
                     }}
                     option2Click={() => {
-                      Toast.show('CLicked Forward Link', Toast.LONG)
+                      this.forwardlink()
+                      // Toast.show('CLicked Forward Link', Toast.LONG)
                     }}
                   />
                 </TouchableOpacity>
@@ -965,7 +1062,7 @@ if (notificationOpen) {
                     </View>
                     <View style={styles.ListMenuContainer}>
                       <TouchableOpacity style={styles.messageButtonContainer}  onPress={() => {
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar})
+                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,userabout:item.about,useravatar:item.avatar, groupexit:false,groupId:0})
                            }}>
                           <Image
                             source={require('../images/message_icon.png')}
@@ -1000,10 +1097,13 @@ if (notificationOpen) {
                          this.blockuser(item.id) 
                         }}
                         option2Click={() => {
-                          Toast.show('CLicked Shared Link', Toast.LONG)
+                          this.link()
+                          // Toast.show('CLicked Shared Link', Toast.LONG)
                         }}
                         option3Click={() => {
-                          Toast.show('CLicked Forward Link', Toast.LONG)
+                          this.forwardlink(item.id)
+                         
+                          // Toast.show('CLicked Forward Link', Toast.LONG)
                         }}
                       />
                     </View>

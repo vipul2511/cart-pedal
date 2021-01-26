@@ -23,7 +23,7 @@ class ResetPasswordScreen extends Component {
     this.state = {
       new_password: '',
       confirm_password: '',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/'
+      baseUrl: 'http://www.cartpedal.com/frontend/web/'
    //   baseUrl: 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/'
     }
   }

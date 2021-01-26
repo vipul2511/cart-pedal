@@ -79,6 +79,7 @@ class SettingScreen extends Component {
       alert(error.message);
     }
   };
+  
 
   hideLoading () {
     this.setState({spinner: false})
@@ -86,7 +87,7 @@ class SettingScreen extends Component {
   ProfileViewCall () {
     let formData = new FormData()
     var urlprofile =
-      'https://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +this.state.userId
+      'http://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +this.state.userId
       this.state.userId
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
@@ -295,25 +296,25 @@ class SettingScreen extends Component {
               </View>
             
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.Profile2Container}>
+            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('ChangePassword')}}>
               <View style={styles.Profile2ImageContainer}>
-                <TouchableOpacity
+                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('ChangePassword')}}
                 >
                   <Image
-                    source={require('../images/data.png')}
+                    source={require('../images/account_icon.png')}
                     style={styles.Profile2ImageViewStyle}
                   />
                  
                 </TouchableOpacity>
               </View>
               <View style={styles.Profile2InfoContainer}>
-                <Text style={styles.PersonNameStyle}>Data and Storage</Text>
+                <Text style={styles.PersonNameStyle}>Change Password</Text>
                 <Text style={styles.ProfileDescription}>
-               
+               Change your Password
                 </Text>
               </View>
             
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity style={styles.Profile2Container}
               onPress={() => {
                 this.props.navigation.navigate('HelpScreen')
@@ -349,6 +350,44 @@ class SettingScreen extends Component {
               </View>
               <View style={styles.Profile2InfoContainer}>
                 <Text style={styles.PersonNameStyle}>Tell a Friend</Text>
+                <Text style={styles.ProfileDescription}>
+              
+                </Text>
+              </View>
+            
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('AdminReport')}}>
+              <View style={styles.Profile2ImageContainer}>
+                <TouchableOpacity  onPress={()=>{this.props.navigation.navigate('AdminReport')}}
+                >
+                  <Image
+                    source={require('../images/contact_icon.png')}
+                    style={styles.Profile2ImageViewStyle}
+                  />
+                 
+                </TouchableOpacity>
+              </View>
+              <View style={styles.Profile2InfoContainer}>
+                <Text style={styles.PersonNameStyle}>Admin Report</Text>
+                <Text style={styles.ProfileDescription}>
+              
+                </Text>
+              </View>
+            
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('ReportIssue')}}>
+              <View style={styles.Profile2ImageContainer}>
+                <TouchableOpacity  onPress={()=>{this.props.navigation.navigate('ReportIssue')}}
+                >
+                  <Image
+                    source={require('../images/help.png')}
+                    style={styles.Profile2ImageViewStyle}
+                  />
+                 
+                </TouchableOpacity>
+              </View>
+              <View style={styles.Profile2InfoContainer}>
+                <Text style={styles.PersonNameStyle}>Report an Issue</Text>
                 <Text style={styles.ProfileDescription}>
               
                 </Text>

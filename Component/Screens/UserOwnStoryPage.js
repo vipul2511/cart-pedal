@@ -96,7 +96,7 @@ class UserStoryPage extends Component{
         console.log('form data==' + JSON.stringify(formData))
     
         // var CartList = this.state.baseUrl + 'api-product/cart-list'
-        var viewStory = "https://www.cartpedal.com/frontend/web/api-user/view-story"
+        var viewStory = "http://www.cartpedal.com/frontend/web/api-user/view-story"
         console.log('Add product Url:' + viewStory)
         fetch(viewStory, {
           method: 'Post',

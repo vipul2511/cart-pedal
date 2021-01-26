@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-  ScrollView
+  ScrollView,
+  Linking
 } from 'react-native'
 import resp from 'rn-responsive-font'
 
@@ -16,6 +17,15 @@ class NotificationsScreen extends Component {
   constructor (props) {
     super(props)
     this.state = {}
+  }
+
+  NotificationOpen=async()=>{
+     try{
+       let extras=[{ "android.provider.extra.APP_PACKAGE": "in.cartpedal" }]
+      await Linking.sendIntent('android.settings.NOTIFICATION_SETTINGS', extras)
+     }catch(e){
+       alert(e.message);
+     }
   }
 
   render () {
@@ -36,7 +46,7 @@ class NotificationsScreen extends Component {
               source={require('../images/logo_cart_paddle.png')}
               style={styles.LogoIconStyle}
             /> */}
-            <TouchableOpacity
+            <TouchableOpacity 
               style={{alignItems: 'center', justifyContent: 'center'}}>
               <Text style={styles.TitleStyle}>Notifications </Text>
             </TouchableOpacity>
@@ -52,22 +62,22 @@ class NotificationsScreen extends Component {
         <View style={styles.MainContentBox}>
           <ScrollView>
        
-            <TouchableOpacity style={styles.Profile2Container}>
+            <TouchableOpacity style={styles.Profile2Container} onPress={this.NotificationOpen}>
              
               <View style={styles.Profile2InfoContainer}>
                 <Text style={styles.PersonNameStyle}>Notification Tone for Message</Text>
                 <Text style={styles.ProfileDescription}>
-                    Silent
+                   System Default
                 </Text>
               </View>
             
             </TouchableOpacity>
-            <TouchableOpacity style={styles.Profile2Container}>
+            <TouchableOpacity style={styles.Profile2Container} onPress={this.NotificationOpen}>
              
               <View style={styles.Profile2InfoContainer}>
                 <Text style={styles.PersonNameStyle}>Notification Tone for Group</Text>
                 <Text style={styles.ProfileDescription}>
-                Default
+                System Default
                 </Text>
               </View>
             

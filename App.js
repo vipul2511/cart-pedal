@@ -63,11 +63,22 @@ import OrderRecievedViewScreen from './Component/Screens/OrderReceviedViewScreen
 import SettingFullView from './Component/Screens/SettingFullView';
 import {VideoProcessScreen} from './Component/Screens/VideoProcessScreen';
 import ContactsListScreen from './Component/Screens/ContactsListScreen';
-import VideoCall from './Component/Screens/VideoCall';
-import VoiceCall from './Component/Screens/voiceCall';
+// import VideoCall from './Component/Screens/VideoCall';
+// import VoiceCall from './Component/Screens/voiceCall';
 import ProductMasterUpdate from './Component/Screens/ProductMaster'
 import NewContactListScreen from './Component/Screens/NewContactListScreen';
 import ForwardMessageScreen from './Component/Screens/ForwardMessageScreen';
+import ProductMasterImage from './Component/Screens/ProductMasterImageSharingPage';
+import ChatProfile from './Component/Screens/chatProfile';
+import ChatGroupListScreen from './Component/Screens/ChatGroupList';
+import ProvideGroupName from './Component/Screens/ProvideGroupName';
+import EditImageUpdateProduct from './Component/Screens/EditImageUpdateProduct';
+import ForwardLinkScreen from './Component/Screens/ForwardLinkScreen';
+import GroupProfile from './Component/Screens/GroupProfile';
+import ChangePassword from './Component/Screens/ChangePassword';
+import AdminReport from './Component/Screens/AdminReport'
+import ReportIssue from './Component/Screens/ReportIssue';
+import ProductMasterSaveScreen from './Component/Screens/ProductMatserSaveScreen';
 pushNotifications.configure();
 const messaging = firebase.messaging();
 
@@ -79,7 +90,7 @@ messaging.hasPermission()
                 console.log("fcm Token",token)  
                 AsyncStorage.setItem('@fcmtoken',JSON.stringify(token));
               })
-              .catch(error => { /* handle error */ });
+              .catch(error => { /* handle error */ console.log('erorr',error)});
       } else {
           messaging.requestPermission()
               .then(() => {
@@ -160,12 +171,23 @@ const NavStack = createStackNavigator(
     Contactus:{screen:Contactus},
     VideoProcessScreen: {screen: VideoProcessScreen},
     ContactsListScreen: {screen: ContactsListScreen},
-    VideoCall:{screen:VideoCall},
+    // VideoCall:{screen:VideoCall},
     AddGroupMember:{screen:AddGroupMember},
-    VoiceCall:{screen:VoiceCall},
+    // VoiceCall:{screen:VoiceCall},
     ProductMasterUpdate:{screen:ProductMasterUpdate},
     ForwardMessageScreen: {screen: ForwardMessageScreen},
     NewContactListScreen: {screen: NewContactListScreen},
+    ChatProfile:{screen:ChatProfile},
+    ChatGroupListScreen:{screen:ChatGroupListScreen},
+    ProvideGroupName:{screen:ProvideGroupName},
+    EditImageUpdateProduct:{screen:EditImageUpdateProduct},
+    ForwardLinkScreen:{screen:ForwardLinkScreen},
+    GroupProfile:{screen:GroupProfile},
+    ChangePassword:{screen:ChangePassword},
+    AdminReport:{screen:AdminReport},
+    ReportIssue:{screen:ReportIssue},
+    ProductMasterImage:{screen:ProductMasterImage},
+    ProductMasterSaveScreen:{screen:ProductMasterSaveScreen}
   },
   {
     

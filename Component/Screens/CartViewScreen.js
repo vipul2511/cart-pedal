@@ -11,7 +11,8 @@ import {
     TouchableWithoutFeedback,
     ScrollView,
     SafeAreaView,
-    Dimensions
+    Dimensions,
+    Share
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import Toast from 'react-native-simple-toast'
@@ -21,7 +22,7 @@ import MenuIcon from './MenuIcon'
 import AsyncStorage from '@react-native-community/async-storage'
 import Spinner from 'react-native-loading-spinner-overlay';
 import SeeMore from 'react-native-see-more-inline';
-
+import firebase from 'react-native-firebase'
 let width=Dimensions.get('screen').width;
 let height=Dimensions.get('screen').height;
 
@@ -56,7 +57,7 @@ class CartViewScreen extends Component {
             about:'',
             redIcon:require('../images/Heart_icon.png'),
             whiteIcon:require('../images/dislike.png'),
-            baseUrl: 'https://www.cartpedal.com/frontend/web/',
+            baseUrl: 'http://www.cartpedal.com/frontend/web/',
             grid_data: [
                 {
                     MultipleIcon: require('../images/multipleImageIcon.png'),
@@ -196,7 +197,7 @@ class CartViewScreen extends Component {
         console.log('form data==' + JSON.stringify(formData));
     
       // var CartList = this.state.baseUrl + 'api-product/cart-list'
-        var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+        var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
         console.log('Add product Url:' + fav)
         fetch(fav, {
           method: 'Post',
@@ -300,7 +301,7 @@ class CartViewScreen extends Component {
           console.log('form data==' + JSON.stringify(formData))
     
         // var CartList = this.state.baseUrl + 'api-product/cart-list'
-          var RemoveCartListURL = "https://www.cartpedal.com/frontend/web/api-product/remove-cart-item"
+          var RemoveCartListURL = "http://www.cartpedal.com/frontend/web/api-product/remove-cart-item"
           console.log('Add product Url:' + RemoveCartListURL)
           fetch(RemoveCartListURL, {
             method: 'Post',
@@ -410,7 +411,68 @@ class CartViewScreen extends Component {
       
       
       }
+      onShare = async (links) => {
+        try {
+          const result = await Share.share({
+            message:
+              `Get the product at ${links}`,
+              url:`${links}`
+          });
+    
+          if (result.action === Share.sharedAction) {
+            if (result.activityType) {
+              // shared with activity type of result.activityType
+            } else {
+              // shared
+            }
+          } else if (result.action === Share.dismissedAction) {
+            // dismissed
+          }
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+    link =async()=>{
+     const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+      .android.setPackageName('com.cart.android')
+      .ios.setBundleId('com.cart.ios');
+      // let url = await firebase.links().getInitialLink();
+      // console.log('incoming url', url);
+    
+    firebase.links()
+      .createDynamicLink(link)
+      .then((url) => {
+        console.log('the url',url);
+        this.onShare(url);
+      });
+    }
+    forwardlink =async(userid)=>{
+      const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+       .android.setPackageName('com.cart.android')
+       .ios.setBundleId('com.cart.ios');
+       // let url = await firebase.links().getInitialLink();
+       // console.log('incoming url', url);
      
+     firebase.links()
+       .createDynamicLink(link)
+       .then((url) => {
+         console.log('the url',url);
+        //  this.sendMessage(url,userid);
+        AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+            if(NumberFormat){
+              let numID=JSON.parse(NumberFormat)
+            //   this.setState({PhoneNumber:numID})
+        this.props.navigation.navigate('ForwardLinkScreen', {
+          fcmToken: this.state.fcmToken,
+          PhoneNumber: numID,
+          userId: this.state.userNo,
+          userAccessToken: this.state.userAccessToken,
+          msgids: url,
+        });
+    }
+}));
+       });
+     }
       PlaceOderCall() {
         let formData = new FormData()
           
@@ -549,7 +611,7 @@ class CartViewScreen extends Component {
                             <View style={styles.ListMenuContainer}>
                                 <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
             console.log('id of user',this.state.block_id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.block_id})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.block_id, username:this.state.nameOfuser,useravatar:this.state.avatar, groupexit:false,groupId:0})
                       }} >
                                     {/* <View > */}
                                         <Image
@@ -582,10 +644,12 @@ class CartViewScreen extends Component {
                                         Toast.show('CLicked Block', Toast.LONG)
                                     }}
                                     option2Click={() => {
-                                        Toast.show('CLicked Shared Link', Toast.LONG)
+                                        this.link()
+                                        // Toast.show('CLicked Shared Link', Toast.LONG)
                                     }}
                                     option3Click={() => {
-                                        Toast.show('CLicked Forward Link', Toast.LONG)
+                                        this.forwardlink()
+                                        // Toast.show('CLicked Forward Link', Toast.LONG)
                                     }}
                                 />
                             </View>
@@ -606,11 +670,11 @@ class CartViewScreen extends Component {
                                 return(
                                 <TouchableOpacity style={styles.listItem} onPress={()=>{this.props.navigation.navigate('CartDetailsScreen',{whole_data:item,seller_id:this.state.removeSellerID,imageURL:item.image})}}>
                                 <Image source={{uri:item.image}} style={styles.image} />
-                                <View style={styles.MultipleOptionContainer}>
+                                {/* {item.image[5]?( <View style={styles.MultipleOptionContainer}>
                                     <Image
                                         source={require('../images/multipleImageIcon.png')}
                                         style={styles.MultipleIconStyle}></Image>
-                                </View>
+                                </View>):null} */}
                                 <View>
                                     <Text style={styles.itemNameStyle}>{item.name}</Text>
                                 </View>
@@ -648,10 +712,12 @@ class CartViewScreen extends Component {
                                                     color: 'white',
                                                 }}
                                                 option1Click={() => {
-                                                    Toast.show('CLicked Shared Link', Toast.LONG)
+                                                    this.link()
+                                                    // Toast.show('CLicked Shared Link', Toast.LONG)
                                                 }}
                                                 option2Click={() => {
-                                                    Toast.show('CLicked Forward Link', Toast.LONG)
+                                                    this.forwardlink()
+                                                    // Toast.show('CLicked Forward Link', Toast.LONG)
                     
                                                     // this.props.navigation.navigate('BluetoothDeviceList')
                                                 }}

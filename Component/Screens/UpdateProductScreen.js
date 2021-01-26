@@ -4,7 +4,7 @@ import AppConst from '../Component/AppConst';
 import AppImageSlider from '../Component/AppImageSlider';
 import resp from 'rn-responsive-font';
 import AsyncStorage from '@react-native-community/async-storage';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from "native-base";
 import Toast from 'react-native-simple-toast';
 import ImagePicker from 'react-native-image-crop-picker';
 
@@ -51,7 +51,11 @@ export default class UpdateProductScreen extends React.Component {
       peoplecontact:'',
       fcmtoken:'',
       language:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      defaultCategory:'',
+      defaultUnit:'',
+      editImg:'',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
+      Share:'',
       CategoryList: [],
       ProductUnit:[],
       selected1: 'key1',
@@ -70,6 +74,12 @@ export default class UpdateProductScreen extends React.Component {
   componentDidMount() {
     AsyncStorage.getItem('@fcmtoken').then(token => {
       if (token) {
+        let editImageArr=[]
+        let itemsImage=this.props.navigation.state.params.product_item;
+        itemsImage.images.map(item=>{
+          editImageArr.push(item.file_url);
+        })
+        this.setState({editImg:editImageArr});
         this.setState({fcmtoken: JSON.parse(token)})
         console.log('device fcm token ====' + this.state.fcmtoken);
         let countPeople=this.props.navigation.state.params.peopleListCount;
@@ -90,8 +100,8 @@ export default class UpdateProductScreen extends React.Component {
         console.log(" Edit user id ====" + this.state.userId);
         this.setState({productId:this.props.navigation.state.params.product_item.product_id});
         let item=this.props.navigation.state.params.product_item
-        this.setState({Category:item.category,Name:item.name,price:item.price.toString(),Unit:item.unit,bunch:item.bunch,Details_1:item.detailone,
-          Details_2:item.detailtwo,Description:item.description});
+        this.setState({Category:item.categoryid,defaultCategory:item.category,Name:item.name,price:item.price.toString(),Unit:item.unit,defaultUnit:item.unit,bunch:item.bunch,Details_1:item.detailone,
+          Details_2:item.detailtwo,Description:item.description,Share:item.share});
           console.log('item',item);
       }
     });
@@ -106,16 +116,16 @@ export default class UpdateProductScreen extends React.Component {
     });
   }
 
-  removeShareUser=(contactNumber)=>{
+  removeShareUser=(contactNumber,identity)=>{
     let formData = new FormData()
-  
+      console.log(identity);
     formData.append('user_id', this.state.userId);
     formData.append('product_id',this.state.productId);
     formData.append('contact', contactNumber);
     console.log('form data==' + JSON.stringify(formData))
 
-    // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/remove-share-user"
+    var CartList = this.state.baseUrl + 'api-product/cart-list'
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/remove-share-user"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -139,7 +149,9 @@ export default class UpdateProductScreen extends React.Component {
         let item=this.state.sharedPeople;
         let filterData=item.filter(items=>items.mobile!==contactNumber);
         this.setState({sharedPeople:filterData});
+        if(identity=='publicuser'){
         this.setState({peopleCount:0});
+        }
         console.log('filter data',filterData);
        console.log('response of reomve contact',JSON.stringify(responseData));
         } else {
@@ -188,9 +200,9 @@ export default class UpdateProductScreen extends React.Component {
     // else if (this.state.Details_2 === '') {
     //   alert('Please Enter Details_2');
     // }
-    else if (this.state.Description === '') {
-      alert('Please Enter Description');
-    }
+    // else if (this.state.Description === '') {
+    //   alert('Please Enter Description');
+    // }
     else {
       console.log('add product');
       this.showLoading();
@@ -205,7 +217,7 @@ export default class UpdateProductScreen extends React.Component {
 
     console.log('form data==' + formData)
    
-    var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-category-list'
+    var urlProduct = 'http://www.cartpedal.com/frontend/web/api-product/product-category-list'
     console.log('urlProduct :' + urlProduct)
     fetch(urlProduct, {
       method: 'GET',
@@ -238,10 +250,6 @@ export default class UpdateProductScreen extends React.Component {
           console.log(responseData.data)
 
         }
-
-        // console.log('User user ID==' + responseData.data.userid)
-        // console.log('access_token ',responseData.data.access_token)
-
       })
       .catch(error => {
         //  this.hideLoading();
@@ -287,7 +295,7 @@ export default class UpdateProductScreen extends React.Component {
 
     //console.log('form data==' + formData)
     // var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-list'
-    var urlProductUnit = 'https://www.cartpedal.com/frontend/web/api-product/product-unit'
+    var urlProductUnit = 'http://www.cartpedal.com/frontend/web/api-product/product-unit'
     console.log('urlProduct :' + urlProductUnit)
     fetch(urlProductUnit, {
       method: 'GET',
@@ -340,9 +348,9 @@ export default class UpdateProductScreen extends React.Component {
       user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unit,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
       detailone:this.state.Details_1,detailtwo:this.state.Details_2
     }));
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-product/edit-product'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-product/edit-product'
     console.log('Add product Url:' + otpUrl)
-     fetch('https://www.cartpedal.com/frontend/web/api-product/edit-product',{
+     fetch('http://www.cartpedal.com/frontend/web/api-product/edit-product',{
       method: 'Post',
       headers:{
         'Content-Type': 'application/json',
@@ -360,15 +368,15 @@ export default class UpdateProductScreen extends React.Component {
         this.hideLoading();
         if (responseData.code == '200') { 
           // this.props.navigation.navigate('StoryViewScreen')
-          console.log('response object:', responseData)
+          console.log('response object:', JSON.stringify(responseData))
           Toast.show(responseData.message);
-          this.props.navigation.navigate('ProfileScreen',{onGoBack: () => this.ProductListCall()});   
+          // this.props.navigation.navigate('ProfileScreen',{onGoBack: () => this.ProductListCall()});   
           // this.SaveProductListData(response)
         } else {
           console.log(responseData.data);
           // alert(responseData.data.password)
         }
-        console.log('response object:', responseData)
+        console.log('response object:', JSON.stringify(responseData))
         // console.log('User user ID==', this.state.userId)
         // console.log('access_token ', this.state.access_token)
         //   console.log('User Phone Number==' + formData.phone_number)
@@ -382,7 +390,7 @@ export default class UpdateProductScreen extends React.Component {
   }
   deleteProduct=()=>{
     this.showLoading();
-    var urlProductUnit = `https://www.cartpedal.com/frontend/web/api-product/delete-product?user_id=${this.state.userId}&product_id=${this.state.productId}`
+    var urlProductUnit = `http://www.cartpedal.com/frontend/web/api-product/delete-product?user_id=${this.state.userId}&product_id=${this.state.productId}`
     console.log('urlProduct :' + urlProductUnit)
     fetch(urlProductUnit, {
       method: 'GET',
@@ -465,7 +473,7 @@ export default class UpdateProductScreen extends React.Component {
     console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/edit-product-share"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/edit-product-share"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -480,29 +488,20 @@ export default class UpdateProductScreen extends React.Component {
       }),
       body: formData,
     })
-
       .then(response => response.json())
       .then(responseData => {
-        //   this.hideLoading();
         if (responseData.code == '200') {
-        //  Toast.show(responseData.message);
         let item=this.state.sharedPeople;
         let filterData=item.filter(items=>items.mobile!==contactNumber);
         this.setState({sharedPeople:filterData});
         console.log('filter data',filterData);
-        // this.setState({})
        console.log('response of reomve contact',JSON.stringify(responseData));
         } else {
-          console.log(responseData.data);
+          alert
         }
-
-        //console.log('Edit profile response object:', responseData)
         console.log('contact list response object:', JSON.stringify(responseData))
-        // console.log('access_token ', this.state.access_token)
-        //   console.log('User Phone Number==' + formData.phone_number)
       })
       .catch(error => {
-        //  this.hideLoading();
         console.error(error)
       })
       .done()
@@ -522,6 +521,12 @@ export default class UpdateProductScreen extends React.Component {
     return (text) => {
         this.setState({ [name]: text })
     }
+}
+customButton=()=>{
+  this.setState({isProfileModalVisible:false})
+  console.log('covers',JSON.stringify(this.state.editImg))
+  console.log('imagewith id',JSON.stringify(this.props.navigation.state.params.product_item))
+  this.props.navigation.navigate('EditImageUpdateProduct',{covers:this.state.editImg,imageWithID:this.props.navigation.state.params.product_item});
 }
 
   render() {
@@ -602,18 +607,18 @@ export default class UpdateProductScreen extends React.Component {
              
             <View style={styles.inputTextView}>
             <Picker 
-            // placeholder={placeholder}
+            // placeholder={this.state.Category}
   selectedValue={this.state.Category}
   style={{height: 50, width: screenWidth-55}}
   onValueChange={(itemValue, itemIndex) => {
+    console.log('item value',itemValue);
     if(itemValue != "0")
     {this.setState({Category: itemValue});
-    this.setState({showPicker:true})
   }
-    else alert('Please select correct category');
+    else alert('Please select new category');
   }  
   }>
-    {/* {this.state.showPicker==false?<Picker.Item color="grey" label={this.state.Category}  value={"0"}  />:null} */}
+    <Picker.Item color="grey" label={this.state.defaultCategory}  value={"0"}  />
     {this.state.CategoryList.map((item,index) =>{
       console.log('items',item);
    return ( 
@@ -659,7 +664,7 @@ export default class UpdateProductScreen extends React.Component {
     else alert('Please select correct unit');
   }  
   }>
-   
+   <Picker.Item color="grey" label={this.state.defaultUnit}  value={"0"}  />
     {this.state.ProductUnit.map((item,index) =>{
       console.log('items',item);
    return ( 
@@ -718,7 +723,7 @@ export default class UpdateProductScreen extends React.Component {
              <TouchableOpacity style={styles.openButtonContainer}
                   onPress={() => {
                     AsyncStorage.setItem('@product_id',JSON.stringify(this.state.productId)).then(succ=>{
-                      this.props.navigation.navigate('AddMoreShare')
+                      this.props.navigation.navigate('AddMoreShare',{share:this.state.Share})
                     })  
                     //  Toast.show('CLicked Share Link', Toast.LONG)
                   }}>
@@ -733,7 +738,7 @@ export default class UpdateProductScreen extends React.Component {
                 <View style={styles.ShareButtonContainer}>  
                   <Text style={styles.ShareTextStyle}>{this.state.peopleCount} Public</Text>
                   {this.state.peopleCount!==0?(<TouchableOpacity onPress={() => {
-                    this.removeShareUser(this.state.peoplecontact)
+                    this.removeShareUser(this.state.peoplecontact,'publicuser')
                     //  Toast.show('CLicked Share Link', Toast.LONG)
                   }}>
                   <Image
@@ -760,7 +765,7 @@ export default class UpdateProductScreen extends React.Component {
                    
                 <Text style={styles.ShareTextStyle}>{name}</Text>
                 <TouchableOpacity  onPress={() => {
-                    this.removeShareUser(item.mobile)
+                    this.removeShareUser(item.mobile,'appuser')
                     //  Toast.show('CLicked Share Link', Toast.LONG)
                   }}>
                   <Image
@@ -772,18 +777,7 @@ export default class UpdateProductScreen extends React.Component {
               }
             }
             />
-                {/* <TouchableOpacity style={styles.ShareButtonContainer}
-                  onPress={() => {
-                    this.props.navigation.navigate('')
-                    //  Toast.show('CLicked Share Link', Toast.LONG)
-                  }}>
-                
-                  <Text style={styles.ShareTextStyle}>Add More</Text>
-                  <Image
-                    source={require('../images/close_button.png')}
-                    style={styles.AddIconStyle}
-                  />
-                </TouchableOpacity> */}
+
                 </View>
                 {/* <Text style={styles.MoreTextStyle}>More</Text> */}
           </ScrollView>
@@ -825,7 +819,7 @@ export default class UpdateProductScreen extends React.Component {
 
                  <TouchableOpacity
                  onPress={() => {
-                      // this.customButton();
+                      this.customButton();
                     }}>
                  <Text style={styles.Options2ProfileModalStyle}>Edit Image</Text>
                    </TouchableOpacity>
@@ -1106,6 +1100,7 @@ height:40
   ShareButtonContainer: {
     marginTop: resp(10),
     marginHorizontal: (5),
+    marginBottom:10,
     flexDirection: 'row',
     flexWrap:'wrap',
     width: resp(105),

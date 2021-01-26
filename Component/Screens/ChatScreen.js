@@ -10,12 +10,15 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
+  TextInput
 } from 'react-native';
 import resp from 'rn-responsive-font';
 import Spinner from 'react-native-loading-spinner-overlay';
 import moment from 'moment';
 import ImageModal from 'react-native-image-modal';
 import requestCameraAndAudioPermission from './permission';
+import { moreIcon, searchIcon,contactIcon,tickIcon,untickIcon,submitIcon } from '../Component/Images';
+import Menu, { MenuItem } from 'react-native-material-menu';
 // import {ScrollView} from 'react-native-gesture-handler'
 // import GiftedFireChat from 'react-native-gifted-fire-chat';
 // import firebase from './firebase'
@@ -40,6 +43,12 @@ class ChatScreen extends Component {
       fcmToken: '',
       PhoneNumber: '',
       mounted: false,
+      showSearch:true,
+      masterlist:'',
+      exit:false,
+      list: [],
+      Deleteid:'',
+      toids: [],
     };
     if (Platform.OS === 'android') {
       //Request required permissions from Android
@@ -91,12 +100,64 @@ class ChatScreen extends Component {
   hideLoading() {
     this.setState({spinner: false});
   }
+  DeleteGroupChat = () => {
+    let formData = new FormData();
+    formData.append('user_id', this.state.userId);
+    formData.append('groupid',this.state.Deleteid)
+    console.log('form data==' + JSON.stringify(formData));  
+
+    var PalceOderUrl ="http://www.cartpedal.com/frontend/web/api-message/delete-group"
+    console.log('placeOder:' + PalceOderUrl)
+    fetch(PalceOderUrl, {
+      method: 'Post',
+      headers: new Headers({
+        'Content-Type': 'multipart/form-data',
+        device_id: '1234',
+        device_token: this.state.fcmToken,
+        device_type: 'android',
+        // Authorization: 'Bearer' + this.state.access_token,  
+        Authorization: JSON.parse(this.state.userAccessToken),
+
+      }),
+      body: formData,
+    })
+      .then(response => response.json())
+      .then(responseData => {
+        if (responseData.code == '200 ') {
+          //  this.props.navigation.navigate('StoryViewScreen')
+          this.setState({exit:false});
+        this.getChatList()
+          // this.props.navigation.navigate('DashBoardScreen');
+          // this.setState({CartListProduct:responseData.data})
+          // this.SaveProductListData(responseData)
+          }
+        // else if (responseData.code == '500') {
+        //   //Toast.show(responseData.message)
+        // }
+
+        else {
+          // alert(responseData.data);
+          // alert(responseData.data.password)
+
+        }
+
+        console.log('response object:', responseData)
+        console.log('User user ID==', JSON.stringify(responseData))
+        // console.log('access_token ', this.state.access_token)
+        //   console.log('User Phone Number==' + formData.phone_number)
+      })
+      .catch(error => {
+        this.hideLoading();
+        console.error(error)
+      })
+      .done()
+  }
 
   getChatList = (loading = true) => {
     if (loading) {
       this.showLoading();
     }
-    var urlprofile = `https://www.cartpedal.com/frontend/web/api-message/chat-list?user_id=${this.state.userId}`;
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-message/chat-list?user_id=${this.state.userId}`;
     console.log('profileurl :' + urlprofile);
     fetch(urlprofile, {
       method: 'GET',
@@ -114,6 +175,7 @@ class ChatScreen extends Component {
           this.hideLoading();
           // this.LoginOrNot();
           await this.setState({chatList: responseData.data, ischatList: true});
+          this.setState({masterlist: responseData.data});
           console.log(JSON.stringify(this.state.chatList, null, 2));
         } else {
           // alert(responseData.data);
@@ -129,18 +191,28 @@ class ChatScreen extends Component {
     // Backend.closeChat();
     this.focusListener.remove();
   }
-
+  searchFilterFunction = (text) => {
+    // Check if searched text is not blank
+    console.log('name',text);
+    if (text) {
+      let combineArray=this.state.chatList
+      const newData = combineArray.filter(
+        function (item) {
+          const itemData = item.name
+            ? item.name.toUpperCase()
+            : ''.toUpperCase();
+          const textData = text.toUpperCase();
+          return itemData.indexOf(textData) > -1;
+      });
+      this.setState({chatList:newData});
+    } else {
+    this.setState({chatList:this.state.masterlist});
+    
+    }
+  };
   render() {
     const funct = this;
-    // const chat =<GiftedFireChat messages={this.state.messages}onSend={firebase.send}user={this.user}></GiftedFireChat>
-
-    // if (Platform.OS==='android') {
-    //   return(
-    //     <KeyboardAvoidingView style={{flex:0.9}} behavior='padding' keyboardVerticalOffset={30} enabled>
-    //         {chat}
-    //     </KeyboardAvoidingView>
-    //   )
-    //  }
+     console.log('date in render ',JSON.stringify(moment().format("DD-MM-YYYY")))
     return (
       <SafeAreaView style={styles.container}>
         <Fab
@@ -163,7 +235,7 @@ class ChatScreen extends Component {
           // textContent={'Loading...'}
           textStyle={styles.spinnerTextStyle}
         />
-        <View style={styles.headerView}>
+         {this.state.showSearch?(<View style={styles.headerView}>
           <View style={styles.BackButtonContainer}>
             <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
               <Image
@@ -182,44 +254,98 @@ class ChatScreen extends Component {
               <Text style={styles.TitleStyle}>CartPadle</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
+          {!this.state.exit?(<TouchableOpacity
             style={styles.SearchContainer}
             onPress={() => {
+              this.setState({showSearch:false})    
               // this.props.navigation.navigate('SearchBarScreen')
             }}>
             <Image
               source={require('../images/search.png')}
               style={styles.SearchIconStyle}
             />
-          </TouchableOpacity>
-        </View>
+          </TouchableOpacity>):<Icon type="MaterialCommunityIcons" name="delete" style={{fontSize:25}} onPress={this.DeleteGroupChat}  />}
+         {!this.state.exit? <TouchableOpacity 
+            onPress={() => {this._menu.show()}}
+          >
+              <Image source={moreIcon} style={styles.moreMenuIcon} />
+          </TouchableOpacity>:null}
+
+          <Menu
+            ref={(ref) => this._menu = ref }>
+            <Text style={{fontSize:16,fontWeight:'bold', marginStart:10,marginEnd:10,marginTop:20,marginBottom:10}} onPress={() => {
+              this._menu.hide()
+              this.props.navigation.navigate('ChatGroupListScreen', {
+                userId: this.state.userId,
+                PhoneNumber: this.state.PhoneNumber,
+                fcmToken: this.state.fcmToken,
+                userAccessToken: this.state.userAccessToken,
+              })}}>{'Create New Group'}</Text>
+            <Text  style={{marginStart:10,marginEnd:10,marginBottom:20,fontSize:13}}  onPress={() => {
+              this._menu.hide()
+              this.props.navigation.navigate('ChatGroupListScreen', {
+                userId: this.state.userId,
+                PhoneNumber: this.state.PhoneNumber,
+                fcmToken: this.state.fcmToken,
+                userAccessToken: this.state.userAccessToken,
+              });}}>{'(for your personol use)'}</Text>
+        </Menu>
+        </View>):(
+                    <View style={styles.inputViewStyle}>
+           
+                    <TouchableOpacity style={{marginLeft:2}}
+                     onPress={() => {this.setState({showSearch:true})}}>
+                     <Image
+                       source={require('../images/back_blck_icon.png')}
+                       style={styles.backButtonStyle1}
+                     />
+                   </TouchableOpacity>
+                   <View style={{backgroundColor: '#00000008'}}>
+                            <TextInput
+                                   placeholder="Search"
+                                   placeholderTextColor="#BEBEBE"
+                                   underlineColorAndroid="transparent"
+                                   style={styles.input}
+                                   onChangeText={(text)=>{this.searchFilterFunction(text)}}
+                               />
+                               </View>
+                               </View>
+        )}
 
         <View style={styles.MainContentBox}>
           <ScrollView>
+            {/* <TouchableOpacity onPress={()=>{console.log(this.state.toids)}}><Text>delte</Text></TouchableOpacity> */}
             <View>
               {this.state.ischatList
                 ? this.state.chatList.map(function (v, i) {
+                  const inList = funct.state.Deleteid;
+                  console.log('v value',v.date);
                     return (
                       <TouchableOpacity
+                        onLongPress={()=>{funct.setState({exit:v.exit,Deleteid:v.id})}}
                         onPress={() => {
                           funct.props.navigation.navigate('ChatDetailScreen', {
                             userid: v.id,
                             username: v.name,
                             useravatar: v.avatar,
+                            userabout:v.about,
+                            userphone:v.mobile,
+                            groupId:v.lastmsg.group_id,
+                            groupexit:v.lastmsg.group_id!==0?v.exit:''
                           });
                         }}>
-                        <View
+                        {/* <View
                           style={{
                             flexDirection: 'row',
                             justifyContent: 'center',
                             borderBottomWidth: 0.5,
                             color: 'grey',
-                          }}>
+                          }}> */}
                           <View
                             style={{
                               alignSelf: 'center',
-                              backgroundColor: 'white',
-                              width: '95%',
+                              backgroundColor: inList==v.id ? 'lightgrey' : 'white',
+                              width: '100%',
                               flexDirection: 'row',
                               alignItems: 'center',
                             }}>
@@ -237,7 +363,7 @@ class ChatScreen extends Component {
                             </View>
                             <View
                               style={{
-                                backgroundColor: 'white',
+                                backgroundColor: inList==v.id ? 'lightgrey' : 'white',
                                 flexDirection: 'row',
                                 width: '84%',
                                 alignItems: 'center',
@@ -247,12 +373,19 @@ class ChatScreen extends Component {
                                 <Text style={styles.PersonNameStyle}>
                                   {v.name}
                                 </Text>
-                                {v.lastmsg?.txt_type === 'text' && (
+                                
+                                {!v.is_delete?v.lastmsg?.txt_type === 'text' && (
                                   <Text style={styles.PersonNameStyle1}>
                                     {v.lastmsg?.body}
                                   </Text>
-                                )}
-                                {v.lastmsg?.txt_type === 'location' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'link' && (
+                                  <Text style={styles.PersonNameStyle1}>
+                                    {v.lastmsg?.body}
+                                  </Text>
+                                ):null}
+                
+                                {!v.is_delete?v.lastmsg?.txt_type === 'location' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -275,8 +408,8 @@ class ChatScreen extends Component {
                                       Location
                                     </Text>
                                   </View>
-                                )}
-                                {v.lastmsg?.txt_type === 'file' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'file' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -299,8 +432,8 @@ class ChatScreen extends Component {
                                       Document
                                     </Text>
                                   </View>
-                                )}
-                                {v.lastmsg?.txt_type === 'image' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'image' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -323,8 +456,8 @@ class ChatScreen extends Component {
                                       Photo
                                     </Text>
                                   </View>
-                                )}
-                                {v.lastmsg?.txt_type === 'video' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'video' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -347,8 +480,8 @@ class ChatScreen extends Component {
                                       Video
                                     </Text>
                                   </View>
-                                )}
-                                {v.lastmsg?.txt_type === 'audio' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'audio' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -371,8 +504,8 @@ class ChatScreen extends Component {
                                       Audio
                                     </Text>
                                   </View>
-                                )}
-                                {v.lastmsg?.txt_type === 'contact' && (
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'contact' && (
                                   <View
                                     style={{
                                       flexDirection: 'row',
@@ -395,7 +528,7 @@ class ChatScreen extends Component {
                                       Contact
                                     </Text>
                                   </View>
-                                )}
+                                ):null}
                               </View>
                               <View>
                                 <Text
@@ -403,9 +536,10 @@ class ChatScreen extends Component {
                                     styles.PersonNameStyle1,
                                     {marginTop: 0},
                                   ]}>
-                                  {moment(v.lastmsg?.created_at).format(
+                                    {v.date==moment().format("DD-MM-YYYY")?v.time:v.date}
+                                  {/* {moment(v.lastmsg?.created_at).format(
                                     'hh:mm a',
-                                  )}
+                                  )} */}
                                 </Text>
                                 {v.unread !== '0' && (
                                   <View
@@ -428,7 +562,14 @@ class ChatScreen extends Component {
                               </View>
                             </View>
                           </View>
-                        </View>
+                        {/* </View> */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            borderBottomWidth: 1,
+                            color: 'grey',
+                          }}></View>
                       </TouchableOpacity>
                     );
                   })
@@ -512,9 +653,38 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#F6F9FE',
   },
-
+  inputViewStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // backgroundColor: '#00000008',
+    backgroundColor: '#fff',
+    width: '100%',
+    marginTop: resp(20),
+   alignContent:'center',
+   alignSelf:'center',
+},
   MainContentBox: {
     flex: 1,
+  },
+  backButtonStyle1:{
+    margin: 15,
+    height: 20,
+    width: 20,
+  },
+  moreMenuIcon: {
+    height : 25,
+    width : 30,
+    resizeMode:'contain',
+    // marginLeft:55,
+    // position:'absolute'
+},
+  input: {
+    color: '#BEBEBE',
+    width: resp(339),
+    height: 50,
+    fontSize:resp(14),
+  alignSelf:'flex-end' 
   },
   row: {
     color: '#000',

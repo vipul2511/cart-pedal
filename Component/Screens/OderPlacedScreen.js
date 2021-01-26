@@ -10,7 +10,8 @@ import {
   TouchableWithoutFeedback,
   Image,
   SafeAreaView,
-  ScrollView
+  ScrollView,
+  Share
 } from 'react-native'
 import { withNavigation } from 'react-navigation';
 import resp from 'rn-responsive-font'
@@ -19,7 +20,7 @@ import Toast from 'react-native-simple-toast'
 import AsyncStorage from '@react-native-community/async-storage'
 import Spinner from 'react-native-loading-spinner-overlay';
 import SeeMore from 'react-native-see-more-inline';
-
+import firebase from 'react-native-firebase'
 
 
 
@@ -125,6 +126,68 @@ class CartPlaceScreen extends Component {
   actionOnRow(item) {
     console.log('Selected Item :', item)
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+link =async()=>{
+ const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+  // let url = await firebase.links().getInitialLink();
+  // console.log('incoming url', url);
+
+firebase.links()
+  .createDynamicLink(link)
+  .then((url) => {
+    console.log('the url',url);
+    this.onShare(url);
+  });
+}
+forwardlink =async(userid)=>{
+  const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+   .android.setPackageName('com.cart.android')
+   .ios.setBundleId('com.cart.ios');
+   // let url = await firebase.links().getInitialLink();
+   // console.log('incoming url', url);
+ 
+ firebase.links()
+   .createDynamicLink(link)
+   .then((url) => {
+     console.log('the url',url);
+    //  this.sendMessage(url,userid);
+    AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+      if(NumberFormat){
+        let numID=JSON.parse(NumberFormat)
+      //   this.setState({PhoneNumber:numID})
+  this.props.navigation.navigate('ForwardLinkScreen', {
+    fcmToken: this.state.fcmToken,
+    PhoneNumber: numID,
+    userId: this.state.userNo,
+    userAccessToken: this.state.userAccessToken,
+    msgids: url,
+  });
+}
+}));
+   });
+ }
   async componentDidMount() {
     AsyncStorage.getItem('@access_token').then((accessToken) => {
       if (accessToken) {
@@ -184,7 +247,7 @@ class CartPlaceScreen extends Component {
       formData.append('type', 1)
       console.log('form data==' + JSON.stringify(formData))
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var CartList = "https://www.cartpedal.com/frontend/web/api-product/cart-list"
+      var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
       console.log('Add product Url:' + CartList)
       fetch(CartList, {
         method: 'Post',
@@ -258,7 +321,7 @@ class CartPlaceScreen extends Component {
       formData.append('block_id',blockID )
       console.log('form data for ask==' + JSON.stringify(formData))
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var AskForStautsURL = "https://www.cartpedal.com/frontend/web/api-product/order-status"
+      var AskForStautsURL = "http://www.cartpedal.com/frontend/web/api-product/order-status"
       console.log(' AskForStautsURL :' + AskForStautsURL)
       fetch(AskForStautsURL, {
         method: 'Post',
@@ -311,7 +374,7 @@ class CartPlaceScreen extends Component {
 
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -408,7 +471,7 @@ class CartPlaceScreen extends Component {
                   {item.about? (<SeeMore style={styles.ProfileDescription} numberOfLines={2}  linkColor="red" seeMoreText="read more" seeLessText="read less">
                   {item.about.substring(0,55)+"..."}
                   </SeeMore>):null}
-            <Text style={{color:'grey',marginBottom:10}}>Order id:{item.orderid}</Text>
+            <Text style={{color:'grey',marginBottom:10}}>Order id:{item.orderid}  {item.date},{item.time}</Text>
             </View>
                 </View>
                 <View style={styles.ListMenuContainer}>
@@ -451,10 +514,12 @@ class CartPlaceScreen extends Component {
                     }}
                     //Click functions for the menu items
                     option1Click={() => {
-                      Toast.show('CLicked Shared Link', Toast.LONG)
+                      this.link()
+                      // Toast.show('CLicked Shared Link', Toast.LONG)
                     }}
                     option2Click={() => {
-                      Toast.show('CLicked Forward Link', Toast.LONG)
+                      this.forwardlink()
+                      // Toast.show('CLicked Forward Link', Toast.LONG)
                     }}
                   />
                 </View>

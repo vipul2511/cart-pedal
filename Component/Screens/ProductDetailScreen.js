@@ -8,7 +8,7 @@ import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-community/async-storage'
 import resp from 'rn-responsive-font'
-
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 
 const screenWidth = Dimensions.get('screen').width;
 
@@ -21,7 +21,7 @@ export default class ProductDetailScreen extends React.Component {
       
      
         this.state = {
-          baseUrl: 'https://www.cartpedal.com/frontend/web/',
+          baseUrl: 'http://www.cartpedal.com/frontend/web/',
           showFullImageView : false,
           viewMore : false,
           quantity:'',
@@ -37,10 +37,30 @@ export default class ProductDetailScreen extends React.Component {
           seller_id:'',
           fcmToken:'',
           imageList : [],
-          itemOfProduct:''
+          itemOfProduct:'',
+          nextId:'',
+          myText:''
         }
         this.doubleClick = false;
         this.hidden = false;
+    }
+    onSwipe(gestureName, gestureState) {
+      const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+      this.setState({gestureName: gestureName});
+      switch (gestureName) {
+        case SWIPE_UP:
+          this.setState({backgroundColor: 'red'});
+          break;
+        case SWIPE_DOWN:
+          this.setState({backgroundColor: 'green'});
+          break;
+        case SWIPE_LEFT:
+          this.setState({backgroundColor: 'blue'});
+          break;
+        case SWIPE_RIGHT:
+          this.setState({backgroundColor: 'yellow'});
+          break;
+      }
     }
      componentDidMount(){
       AsyncStorage.getItem('@fcmtoken').then((token) => {
@@ -56,8 +76,8 @@ export default class ProductDetailScreen extends React.Component {
           console.log("Edit access token ====" + accessToken);
           //this.RecentUpdateCall();
           let imageURl=this.state.imageList;
-          let nameId=this.props.navigation.state.params.name
-          this.setState({userNameProduct:nameId})
+          // let nameId=this.props.navigation.state.params.name
+          // this.setState({userNameProduct:nameId})
           let item=this.props.navigation.state.params.imageURL;
           item.map((items,index)=>{
             imageURl.push(items.image)
@@ -70,8 +90,8 @@ export default class ProductDetailScreen extends React.Component {
         console.log("Product data",JSON.stringify(this.props.navigation.state.params.whole_data));
         console.log('seller id',this.props.navigation.state.params.seller_id);
         this.setState({itemOfProduct:this.props.navigation.state.params.whole_data});
-        this.setState({name:this.props.navigation.state.params.whole_data.name});
-         this.setState({seller_id:this.props.navigation.state.params.seller_id});
+        // this.setState({name:this.props.navigation.state.params.whole_data.name});
+        //  this.setState({seller_id:this.props.navigation.state.params.seller_id});
         this.setState({price:this.props.navigation.state.params.whole_data.price});
         if (userId) {
             this.setState({ userNo: userId });
@@ -111,24 +131,27 @@ export default class ProductDetailScreen extends React.Component {
         });
        }
      }
-    
-    // onImageClick(item)
-    // {
-    //   if (this.doubleClick) 
-    //   {
+     onSwipeUp(gestureState) {
+     this.props.navigation.goBack()
+    }
+    onImageClick(item)
+    {
+      if (this.doubleClick) 
+      {
+        let imageArr=[];
+        imageArr.push(item);
         
-    //       this.props.navigation.navigate('StoryViewScreen',{images:item})
-      
-    //   //  this.setState({showFullImageView : !this.state.showFullImageView})
-    //   }
-    //   else
-    //   {
-    //       this.doubleClick = true;
-    //       setTimeout(() => {
-    //         this.doubleClick = false;
-    //     }, 800);
-    //   }
-    // }
+          this.props.navigation.navigate('ProductDetailImageFullView',{images:item})
+      //  this.setState({showFullImageView : !this.state.showFullImageView})
+      }
+      else
+      {
+          this.doubleClick = true;
+          setTimeout(() => {
+            this.doubleClick = false;
+        }, 800);
+      }
+    }
 
     renderInnerImageList(item, index, separators)
     {
@@ -147,7 +170,7 @@ export default class ProductDetailScreen extends React.Component {
 
       console.log('form data==' + JSON.stringify(formData))
     
-      var AddCartProductUrl ="https://www.cartpedal.com/frontend/web/api-product/add-views"
+      var AddCartProductUrl ="http://www.cartpedal.com/frontend/web/api-product/add-views"
     
       console.log('Add Card Url:' + AddCartProductUrl)
       fetch(AddCartProductUrl, {
@@ -166,10 +189,17 @@ export default class ProductDetailScreen extends React.Component {
         .then(responseData => {
         
           if (responseData.code == '200') {
+            let nameId=responseData.data.name
+            this.setState({userNameProduct:nameId})
+            this.setState({itemOfProduct:responseData.data});
+            this.setState({name:responseData.data.name});
+             this.setState({seller_id:responseData.data.id});
+            this.setState({price:responseData.data.price});
           // Toast.show(responseData.message);
             // this.props.navigation.navigate('CartScreen');
             //this.setState({ProfileData:responseData.data})
             // alert(responseData.message);
+            this.setState({nextId:responseData.data.prev})
         console.log(JSON.stringify(responseData));
     
           } else {
@@ -207,7 +237,7 @@ export default class ProductDetailScreen extends React.Component {
 
       console.log('form data==' + JSON.stringify(formData))
     
-      var AddCartProductUrl ="https://www.cartpedal.com/frontend/web/api-product/add-cart"
+      var AddCartProductUrl ="http://www.cartpedal.com/frontend/web/api-product/add-cart"
     
       console.log('Add Card Url:' + AddCartProductUrl)
       fetch(AddCartProductUrl, {
@@ -248,10 +278,7 @@ export default class ProductDetailScreen extends React.Component {
         //  this.hideLoading();
           console.error(error)
         })
-    
         .done()
-    
-    
     }
     singleProductPlaceOrder = () => {
       let formData = new FormData();
@@ -264,7 +291,7 @@ export default class ProductDetailScreen extends React.Component {
      
       console.log('form data==' + JSON.stringify(formData));  
   
-      var PalceOderUrl ="https://www.cartpedal.com/frontend/web/api-product/place-order"
+      var PalceOderUrl ="http://www.cartpedal.com/frontend/web/api-product/place-order"
       // var PalceOderUrl = "https://www.cartpedal.com/frontend/web/api-product/place-order"
       console.log('placeOder:' + PalceOderUrl)
       fetch(PalceOderUrl, {
@@ -316,15 +343,28 @@ export default class ProductDetailScreen extends React.Component {
     }
  
   render() {
+    const config = {
+      velocityThreshold: 0.3,
+      directionalOffsetThreshold: 80
+    };
     return (
       <SafeAreaView style={styles.mainContainer}>
       <StatusBar barStyle="dark-content" backgroundColor={'#fff'} />
         <View style={[styles.container,{backgroundColor:'#e3e3e3'}]}>
-       
+        <GestureRecognizer
+        onSwipe={(direction, state) => this.onSwipe(direction, state)}
+        onSwipeUp={(state) => this.onSwipeUp(state)}
+        config={config}
+        style={{
+          flex: 1,
+          backgroundColor: this.state.backgroundColor
+        }}
+        >
         <AppImageSlider
             sliderImages={this.state.imageList}
             rendorImages={(item, index) => this.renderInnerImageList(item, index)}
         />
+        </GestureRecognizer>
         </View>
         {(!this.state.showFullImageView)?
         <View style={{backgroundColor:'white',borderTopStartRadius:30,borderTopEndRadius:30,marginTop:-50}}>
@@ -382,6 +422,18 @@ export default class ProductDetailScreen extends React.Component {
         <View style={{position: 'absolute',top: 30,start:100}}>
              <Text style={styles.TitleStyle}>{this.state.userNameProduct}</Text>
              </View>
+             {/* <GestureRecognizer
+        onSwipe={(direction, state) => this.onSwipe(direction, state)}
+        onSwipeUp={(state) => this.onSwipeUp(state)}
+        config={config}
+        style={{
+          flex: 1,
+          backgroundColor: this.state.backgroundColor
+        }}
+        >
+        <Text>{this.state.myText}</Text>
+        <Text>onSwipe callback received gesture: {this.state.gestureName}</Text>
+      </GestureRecognizer> */}
       </SafeAreaView>
     );
   }

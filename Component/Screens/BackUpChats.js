@@ -11,13 +11,88 @@ import {
   ScrollView
 } from 'react-native'
 import resp from 'rn-responsive-font'
-
+import AsyncStorage from '@react-native-community/async-storage'
 class BackUpChats extends Component {
   constructor (props) {
     super(props)
-    this.state = {}
-  }
+    this.state = {
+      fcmToken:'',
+      userAccessToken:'',
+      userId:''
 
+    }
+  }
+  componentDidMount(){
+    AsyncStorage.getItem('@fcmtoken').then((token) => {
+      console.log("Edit user id token=" +token);
+      if (token) {
+        this.setState({ fcmToken: token })
+       
+      }
+    });
+    AsyncStorage.getItem('@access_token').then((accessToken) => {
+      if (accessToken) {
+        this.setState({ userAccessToken: accessToken });
+        console.log("Edit access token ====" + accessToken);
+        //this.RecentUpdateCall();
+      }
+    });
+    AsyncStorage.getItem('@user_id').then((userId) => {
+        this.setState({userId:userId})
+      
+  });
+
+   }
+  clearMessages = () => {
+    const {fcmToken, userId, userAccessToken} = this.state;
+
+
+
+    const data = new FormData();
+
+    data.append('user_id', userId);
+    data.append('type','all')
+    data.append('toid',0 );
+       console.log('data',JSON.stringify(data))
+    var EditProfileUrl =
+      'http://www.cartpedal.com/frontend/web/api-message/clear-all';
+    console.log('Add product Url:' + EditProfileUrl);
+    fetch(EditProfileUrl, {
+      method: 'POST',
+      headers: {
+        device_id: '1234',
+        device_token: fcmToken,
+        device_type: 'android',
+        Authorization: JSON.parse(userAccessToken),
+      },
+      body: data,
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        //   this.hideLoading();
+        if (responseData.code == '200') {
+          this.props.navigation.navigate('SettingScreen');
+        // console.log(JSON.stringify(responseData));
+          //  Toast.show(responseData.message);
+          // this.getConversationList();
+        } else {
+          console.log(responseData.data);
+        }
+
+        //console.log('Edit profile response object:', responseData)
+        console.log(
+          'clear response object:',
+          JSON.stringify(responseData),
+        );
+        // console.log('access_token ', this.state.access_token)
+        //   console.log('User Phone Number==' + formData.phone_number)
+      })
+      .catch((error) => {
+        //  this.hideLoading();
+        console.error(error);
+      })
+      .finally(() => {});
+  };
   render () {
     return (
       <SafeAreaView style={styles.container}>
@@ -71,7 +146,7 @@ class BackUpChats extends Component {
               </View>
             
             </TouchableOpacity>
-            <TouchableOpacity style={styles.Profile2Container}>
+            <TouchableOpacity style={styles.Profile2Container} onPress={this.clearMessages}>
               <View style={styles.Profile2ImageContainer}>
                 <TouchableOpacity
                 >

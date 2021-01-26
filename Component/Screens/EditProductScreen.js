@@ -6,7 +6,7 @@ import resp from 'rn-responsive-font';
 import AsyncStorage from '@react-native-community/async-storage';
 import Toast from 'react-native-simple-toast';
 //import * as ApiClient from '../Component/ApiClient';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from "native-base";
 
 
 //import RNPickerSelect from 'react-native-picker-select';
@@ -40,7 +40,7 @@ export default class EditProductScreen extends React.Component {
       Details_2: '',
       imageItem: '',
       Description: '',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
       CategoryList: [],
       ProductUnit: [],
       selected1: 'key1',
@@ -112,9 +112,9 @@ export default class EditProductScreen extends React.Component {
     // else if (this.state.Details_2 === '') {
     //   alert('Please Enter Details_2');
     // }
-    else if (this.state.Description === '') {
-      alert('Please Enter Description');
-    }
+    // else if (this.state.Description === '') {
+    //   alert('Please Enter Description');
+    // }
     else {
       console.log('add product');
       this.AddProductCall();
@@ -128,7 +128,7 @@ export default class EditProductScreen extends React.Component {
 
     console.log('form data==' + formData)
 
-    let urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-category-list'
+    let urlProduct = 'http://www.cartpedal.com/frontend/web/api-product/product-category-list'
     console.log('urlProduct :' + urlProduct)
     fetch(urlProduct, {
       method: 'GET',
@@ -170,7 +170,7 @@ export default class EditProductScreen extends React.Component {
     let formData = new FormData()
     //console.log('form data==' + formData)
     // var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-list'
-    var urlProductUnit = 'https://www.cartpedal.com/frontend/web/api-product/product-unit'
+    var urlProductUnit = 'http://www.cartpedal.com/frontend/web/api-product/product-unit'
     console.log('urlProduct :' + urlProductUnit)
     fetch(urlProductUnit, {
       method: 'GET',
@@ -222,9 +222,9 @@ export default class EditProductScreen extends React.Component {
       user_id:this.state.userId,name:this.state.Name,upload:this.state.imageItem,category:this.state.language,unit:this.state.Unit ,price:finalPrice,description:this.state.Description,bunch:this.state.bunch,
       detailone:this.state.Details_1,detailtwo:this.state.Details_2
     }));
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-product/add-product'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-product/add-product'
     console.log('Add product Url:' + otpUrl)
-     fetch('https://www.cartpedal.com/frontend/web/api-product/add-product', {
+     fetch('http://www.cartpedal.com/frontend/web/api-product/add-product', {
       method: 'Post',
       headers:{
         'Content-Type': 'application/json',
@@ -244,6 +244,7 @@ export default class EditProductScreen extends React.Component {
           // this.props.navigation.navigate('StoryViewScreen')
           console.log(' add product response object:', responseData)
          // Toast.show(responseData.message);
+         console.log('hh',this.props.navigation.state.params)
          if(this.props.navigation.state.params){
           if(this.props.navigation.state.params.productMaster=="ProductImage"){
             AsyncStorage.setItem('@productMasterSave',JSON.stringify(14)).then(suc=>{
@@ -254,6 +255,10 @@ export default class EditProductScreen extends React.Component {
               this.props.navigation.goBack()
              });
           }
+        }else{
+          AsyncStorage.setItem('@product_id',JSON.stringify(responseData.data.id)).then(succ=>{
+            this.props.navigation.goBack()
+           });
         }
         
           // this.SaveProductListData(response)

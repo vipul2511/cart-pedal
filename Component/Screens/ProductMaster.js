@@ -4,7 +4,7 @@ import AppConst from '../Component/AppConst';
 import AppImageSlider from '../Component/AppImageSlider';
 import resp from 'rn-responsive-font';
 import AsyncStorage from '@react-native-community/async-storage';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from "native-base";
 import Toast from 'react-native-simple-toast';
 import ImagePicker from 'react-native-image-crop-picker';
 
@@ -51,7 +51,7 @@ export default class ProductMasterUpdate extends React.Component {
       peoplecontact:'',
       fcmtoken:'',
       language:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
       CategoryList: [],
       ProductUnit:[],
       selected1: 'key1',
@@ -115,7 +115,7 @@ export default class ProductMasterUpdate extends React.Component {
     console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/remove-share-user"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/remove-share-user"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -204,7 +204,7 @@ export default class ProductMasterUpdate extends React.Component {
 
     console.log('form data==' + formData)
    
-    var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-category-list'
+    var urlProduct = 'http://www.cartpedal.com/frontend/web/api-product/product-category-list'
     console.log('urlProduct :' + urlProduct)
     fetch(urlProduct, {
       method: 'GET',
@@ -286,7 +286,7 @@ export default class ProductMasterUpdate extends React.Component {
 
     //console.log('form data==' + formData)
     // var urlProduct = 'https://www.cartpedal.com/frontend/web/api-product/product-list'
-    var urlProductUnit = 'https://www.cartpedal.com/frontend/web/api-product/product-unit'
+    var urlProductUnit = 'http://www.cartpedal.com/frontend/web/api-product/product-unit'
     console.log('urlProduct :' + urlProductUnit)
     fetch(urlProductUnit, {
       method: 'GET',
@@ -339,9 +339,9 @@ export default class ProductMasterUpdate extends React.Component {
       user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unit,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
       detailone:this.state.Details_1,detailtwo:this.state.Details_2
     }));
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-product/edit-product'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-product/edit-product'
     console.log('Add product Url:' + otpUrl)
-     fetch('https://www.cartpedal.com/frontend/web/api-product/edit-product',{
+     fetch('http://www.cartpedal.com/frontend/web/api-product/edit-product',{
       method: 'Post',
       headers:{
         'Content-Type': 'application/json',
@@ -381,7 +381,7 @@ export default class ProductMasterUpdate extends React.Component {
   }
   deleteProduct=()=>{
     this.showLoading();
-    var urlProductUnit = `https://www.cartpedal.com/frontend/web/api-product/delete-product?user_id=${this.state.userId}&product_id=${this.state.productId}`
+    var urlProductUnit = `http://www.cartpedal.com/frontend/web/api-product/delete-product?user_id=${this.state.userId}&product_id=${this.state.productId}`
     console.log('urlProduct :' + urlProductUnit)
     fetch(urlProductUnit, {
       method: 'GET',
@@ -464,7 +464,7 @@ export default class ProductMasterUpdate extends React.Component {
     console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/edit-product-share"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/edit-product-share"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',

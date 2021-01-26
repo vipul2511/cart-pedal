@@ -129,7 +129,7 @@ export default class AddGroupMember extends React.Component {
       console.log('form data==' + JSON.stringify(formData))
   
       // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+      var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
       console.log('Add product Url:' + EditProfileUrl)
       fetch(EditProfileUrl, {
         method: 'Post',
@@ -172,7 +172,7 @@ export default class AddGroupMember extends React.Component {
       console.log('form data==' + JSON.stringify(formData))
   
       // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+      var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
       console.log('Add product Url:' + EditProfileUrl)
       fetch(EditProfileUrl, {
         method: 'Post',

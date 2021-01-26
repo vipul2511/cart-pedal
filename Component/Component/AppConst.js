@@ -13,6 +13,7 @@ const AppConst = {
 
     //Buttons title 
     btnTitleAddToCart : 'ADD TO CART',
+    btnTitleUpdateToCart:'UPDATE CART',
     btnTitleBuyNow : 'BUY NOW',
     btnDelete:'DELETE'
 }

@@ -120,7 +120,7 @@ class UploadCoverPhotoScreen extends Component {
     // formDataID.append('imgid',data)
     console.log('form data==' + JSON.stringify({user_id:this.state.userId,upload:[],type:0,action:0,imgid:data}))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var DeleteStoriiL='https://www.cartpedal.com/frontend/web/api-user/update-image'
+    var DeleteStoriiL='http://www.cartpedal.com/frontend/web/api-user/update-image'
     console.log('DeleteStory Url:' + DeleteStoriiL) 
     fetch(DeleteStoriiL, {
       method: 'POST',
@@ -196,7 +196,7 @@ class UploadCoverPhotoScreen extends Component {
     this.showLoading();
     let formData = new FormData()
     var urlprofile =
-      'https://www.cartpedal.com/frontend/web/api-user/view-profile?user_id='+this.state.userId
+      'http://www.cartpedal.com/frontend/web/api-user/view-profile?user_id='+this.state.userId
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -253,7 +253,7 @@ class UploadCoverPhotoScreen extends Component {
     console.log('upload profile pic',this.state.newImageArr);
     this.showLoading();
     console.log("raw data",JSON.stringify({user_id:this.state.userId,type:0,upload:this.state.newImageArr}))
-    var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-user/upload-image"
+    var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-user/upload-image"
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',

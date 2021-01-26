@@ -21,6 +21,8 @@ class ForwardMessageScreen extends Component {
       list: [],
       spinner: false,
       toids: [],
+      groups:[],
+      groupID:[]
     };
   }
   showLoading() {
@@ -40,23 +42,25 @@ class ForwardMessageScreen extends Component {
   }
 
   forwardMessages = () => {
+    // console.log('to id',toids)
     const {
       fcmToken,
       userId,
       userAccessToken,
       msgids,
     } = this.props.navigation.state.params;
-
+    let toids=this.state.toids.join(',');
+    let grpId;
+    if(this.state.groupID.length>0) grpId=this.state.groupID.join(',')
     this.showLoading();
-
     const data = new FormData();
-
     data.append('user_id', userId);
     data.append('msgids', msgids);
-    data.append('toids', toids.substring(1, toids.length - 1));
-
+    data.append('toids',toids );
+    data.append('groupids',grpId)
+    console.log('form data',JSON.stringify(data));
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-message/forword-message';
+      'http://www.cartpedal.com/frontend/web/api-message/forword-message';
     console.log('Add product Url:' + EditProfileUrl);
     fetch(EditProfileUrl, {
       method: 'POST',
@@ -112,7 +116,7 @@ class ForwardMessageScreen extends Component {
 
     this.showLoading();
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-product/contact-list';
+      'http://www.cartpedal.com/frontend/web/api-product/contact-list';
     console.log('Add product Url:' + EditProfileUrl);
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -137,6 +141,7 @@ class ForwardMessageScreen extends Component {
           //  Toast.show(responseData.message);
           console.log(JSON.stringify(responseData.data, null, 2));
           this.setState({list: responseData.data.appcontact});
+          this.setState({groups:responseData.data.groups})
         } else {
           console.log(responseData.data);
         }
@@ -168,6 +173,7 @@ class ForwardMessageScreen extends Component {
           color="#F01738"
           textStyle={styles.spinnerTextStyle}
         />
+        <TouchableOpacity onPress={()=>{console.log('this group',this.state.groupID)}}><Text>hello</Text></TouchableOpacity>
         {this.state.toids.length !== 0 && (
           <Fab
             onPress={() => {
@@ -231,11 +237,12 @@ class ForwardMessageScreen extends Component {
                         }));
                       }
                     }}>
+                      <View>
                     <View
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'center',
-                        borderBottomWidth: 0.5,
+                        borderBottomWidth: 1,
                         color: 'grey',
                       }}>
                       <View
@@ -268,6 +275,70 @@ class ForwardMessageScreen extends Component {
                           </View>
                         </View>
                       </View>
+                    </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+               {this.state.groups.map((v, i) => {
+                const inList = this.state.toids.indexOf(v.grpid) !== -1;
+                return (
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => {
+                      if (!inList) {
+                        this.setState((p) => ({
+                          ...p,
+                          toids: [...p.toids, v.grpid],
+                          groupID:[...p.groupID,v.grpid]
+                        }));
+                      } else {
+                        this.setState((p) => ({
+                          ...p,
+                          toids: p.toids.filter((i) => i !== v.grpid),
+                          groupID:p.groupID.filter((i) => i !== v.grpid)
+                        }));
+                      }
+                    }}>
+                      <View>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        borderBottomWidth: 1,
+                        color: 'grey',
+                      }}>
+                      <View
+                        style={{
+                          alignSelf: 'center',
+                          width: '95%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: inList ? 'lightgrey' : 'white',
+                        }}>
+                        <View style={{padding: 10}}>
+                          <Image
+                            source={
+                              v.image
+                                ? {uri: v.image}
+                                : require('../images/default_user.png')
+                            }
+                            style={styles.Styleimage}
+                          />
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            width: '84%',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}>
+                          <View>
+                            <Text style={styles.PersonNameStyle}>{v.name}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
                     </View>
                   </TouchableOpacity>
                 );

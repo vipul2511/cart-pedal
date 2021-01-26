@@ -13,7 +13,7 @@ import resp from 'rn-responsive-font'
 import Toast from 'react-native-simple-toast';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-community/async-storage';
-
+import CheckBox from 'react-native-check-box';
 console.disableYellowBox = true
 var mobileNumber, otp;
 class SignUPScreen extends Component {
@@ -26,7 +26,8 @@ class SignUPScreen extends Component {
       mobile: '',
       email: '',
       fcmToken:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      isChecked:'',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
      // baseUrl: 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/',
     }
   }
@@ -61,6 +62,9 @@ class SignUPScreen extends Component {
     }
     else if (this.state.password === '') {
       alert('Please Enter Password');
+    }
+    else if(this.state.isChecked===false || this.state.isChecked===''){
+      alert('Please select the Terms and condition')
     }
 
     else {
@@ -103,7 +107,7 @@ class SignUPScreen extends Component {
       headers: {
         'Content-Type': 'multipart/form-data',
         device_id: '1234',
-        device_token: this.state.fcmToken,
+        device_token:this.state.fcmToken,
         device_type: 'android',
       },
       body: formData,
@@ -193,7 +197,42 @@ class SignUPScreen extends Component {
                 onChangeText={password => this.setState({ password })}
               />
             </View>
-            <View style={styles.forgetButton}></View>
+            {/* <View style={styles.forgetButton}></View> */}
+            <View style={{
+                                    flexDirection: 'row',
+                                    marginBottom: 15
+                                }}>
+
+<CheckBox
+                                        uncheckedCheckBoxColor={'#FB3954'}
+                                        checkedCheckBoxColor={'#FB3954'}
+                                        value={this.state.isChecked}
+                                        onValueChange={() => this.setState({ isChecked: !this.state.isChecked })}
+                                        onClick={() => {
+                                            this.setState({ isChecked: !this.state.isChecked },()=>{
+                                                if (this.state.isChecked==true) {
+                                                
+                                            }
+                                            });
+                        
+
+                                        }}
+                                        isChecked={this.state.isChecked}
+                                    />
+                                  <View >
+                                    <Text
+                                        style={{
+                                            marginTop: 5, color: '#06142D', marginHorizontal: 5,
+                                            borderBottomWidth: 1, borderColor: '#C7E8F2', fontSize: 12
+                                        }}
+                                    > I Accept
+                                     <Text onPress={() => this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup'})} style={{color:'#FB3954'}}> Terms & Conditions </Text>
+                                     and 
+                                     <Text onPress={() => this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup1'})} style={{color:'#FB3954'}}> Privacy Policy.</Text>
+                                     </Text>
+                                    </View>
+
+                                </View>
             <TouchableOpacity
               style={styles.loginButtonStyle}
               activeOpacity={0.2}
@@ -202,6 +241,7 @@ class SignUPScreen extends Component {
               }}>
               <Text style={styles.buttonWhiteTextStyle}>Sign Up</Text>
             </TouchableOpacity>
+ 
             {this.state.loading && (
               <View style={styles.loading}>
                 <ActivityIndicator size="large" color="#F01738" />
@@ -232,6 +272,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  RadioButtonStyle:{
+    marginTop:resp(15),
+    marginHorizontal:resp(30),
+    marginBottom:resp(-10),
+     alignContent:'center',
+     alignSelf:'center',
+   },
   container2: {
     height: resp(780),
     flex: 1,

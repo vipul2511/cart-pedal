@@ -123,7 +123,7 @@ export default class ShareWithScreen extends React.Component {
      }
      sendContactToServer=(contact)=>{
    // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+      var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
       console.log('Add product Url:' + EditProfileUrl)
       fetch(EditProfileUrl, {
         method: 'Post',
@@ -162,7 +162,7 @@ export default class ShareWithScreen extends React.Component {
         .done()
      }
      ContactListall() {
-      var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/contact-list"
+      var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/contact-list"
       console.log('Add product Url:' + EditProfileUrl)
       fetch(EditProfileUrl, {
         method: 'Post',
@@ -213,55 +213,72 @@ export default class ShareWithScreen extends React.Component {
         .done()
     }
     boxname=(items,newItem)=>{
-         console.log(typeof newItem);
-      if(typeof items.name =='string'){
-        console.log('working',newItem)
-      let nameArr=this.state.numberArr;
-      let nameArray=this.state.nameArrState;
-      if(this.state.numberArr.includes(newItem)){
-        this.setState({numberArr:nameArr.filter(value=>value!==newItem)})
-      }else{
-        nameArr.push(newItem);
-        this.setState({numberArr:nameArr});
-      }
-      if(this.state.nameArrState.includes(items.name)){
-        this.setState({ nameArrState: nameArray.filter(item => item !== items.name)},()=>{
-          let nameDisplay=this.state.nameArrState.join(',');
-          this.setState({nameDisplayBox:nameDisplay});
-        })
-      }else{
-        nameArray.push(items.name);
-        this.setState({nameArrState:nameArray},()=>{
-          let nameDisplay=this.state.nameArrState.join(',');
-          this.setState({nameDisplayBox:nameDisplay});
-        });  
-      }
-      let nameSingle=this.state.numberArr.join(',');
-      this.setState({nameBox:nameSingle});
-      }else{
+         console.log(items,newItem);
+      // if(typeof items.name =='string'){
+      //   console.log('working',newItem)
+      // let nameArr=this.state.numberArr;
+      // let nameArray=this.state.nameArrState;
+      // if(this.state.numberArr.includes(newItem)){
+      //   this.setState({numberArr:nameArr.filter(value=>value!==newItem)})
+      // }else{
+      //   nameArr.push(newItem);
+      //   this.setState({numberArr:nameArr});
+      // }
+      // if(this.state.nameArrState.includes(items.name)){
+      //   this.setState({ nameArrState: nameArray.filter(item => item !== items.name)},()=>{
+      //     let nameDisplay=this.state.nameArrState.join(',');
+      //     this.setState({nameDisplayBox:nameDisplay});
+      //   })
+      // }else{
+      //   nameArray.push(items.name);
+      //   this.setState({nameArrState:nameArray},()=>{
+      //     let nameDisplay=this.state.nameArrState.join(',');
+      //     this.setState({nameDisplayBox:nameDisplay});
+      //   });  
+      // }
+      // // let nameSingle=this.state.numberArr.join(',');
+      // // this.setState({nameBox:nameSingle});
+      // }else{
         console.log('else executing');
         let nameArr=this.state.numberArr;
         let nameArray=this.state.nameArrState;
         if(this.state.numberArr.includes(newItem)){
-          this.setState({numberArr:nameArr.filter(value=>value!==newItem)})
+          this.setState({numberArr:nameArr.filter(value=>value!==newItem)},()=>{
+            this.numberUpdate()
+          })
         }else{
           nameArr.push(newItem);
-          this.setState({numberArr:nameArr});
+          this.setState({numberArr:nameArr},()=>{
+            this.numberUpdate()
+          });
         }
         if(this.state.nameArrState.includes(items)){
-          this.setState({ nameArrState: nameArray.filter(item => item !== items)})
+          this.setState({ nameArrState: nameArray.filter(item => item !== items)},()=>{
+            this.nameUpdate()
+           })
         }else{
           nameArray.push(items);
-          this.setState({nameArrState:nameArray});
+          this.setState({nameArrState:nameArray},()=>{
+            this.nameUpdate()
+          });
         }
         // console.log('name arr else',nameArr);
-        let nameDisplay=this.state.nameArrState.join(',');
-        let nameSingle=this.state.numberArr.join(',');
-        this.setState({nameBox:nameSingle});
-        this.setState({nameDisplayBox:nameDisplay});
+        // let nameDisplay=this.state.nameArrState.join(',');
+        // let nameSingle=this.state.numberArr.join(',');
+        // this.setState({nameBox:nameSingle});
+        // this.setState({nameDisplayBox:nameDisplay});
         // console.log('number box',this.state.nameBox)
-      }
+      // }
     }
+    numberUpdate=()=>{
+      let nameSingle=this.state.numberArr.join(',');
+      console.log('number arr',this.state.nameArrState)
+      this.setState({nameBox:nameSingle});
+  }
+  nameUpdate=()=>{
+      let nameDisplay=this.state.nameArrState.join(',');
+      this.setState({nameDisplayBox:nameDisplay});
+  }
     selection=(items)=>{
       console.log('selection value ',items);
       if(this.state.data.length>0){
@@ -275,7 +292,9 @@ export default class ShareWithScreen extends React.Component {
       });
     }
     }else{
-      this.setState({boxname:false});
+      this.setState({boxname:false},()=>{
+        this.boxname(items.name,items.mobile);
+      })
     }
     }
   selectItem = (value) => {
@@ -411,11 +430,54 @@ export default class ShareWithScreen extends React.Component {
         </View>
          )
     }
+    ShareProductNotRegisteredUser=()=>{
+      console.log('hello',this.state.nameBox);
+      this.showLoading();
+        let formData = new FormData()
+        formData.append('user_id', this.state.userId);
+        formData.append('product_id',this.state.product_id)
+        formData.append('contacts', this.state.nameBox);
+        console.log('form data==' + JSON.stringify(formData))
+    
+        // var CartList = this.state.baseUrl + 'api-product/cart-list'
+        var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/product-share-msg"
+        console.log('Add product Url:' + EditProfileUrl)
+        fetch(EditProfileUrl, {
+          method: 'Post',
+          headers: new Headers({
+            'Content-Type': 'multipart/form-data',
+            device_id: '1111',
+            device_token: this.state.fcmtoken,
+            device_type: 'android',
+            // Authorization: 'Bearer' + this.state.access_token,  
+            Authorization: JSON.parse(this.state.userAccessToken),
+    
+          }),
+          body: formData,
+        })
+          .then(response => response.json())
+          .then(responseData => {
+              this.hideLoading();
+            if (responseData.code == '200') {
+             console.log('response of product msg share',JSON.stringify(responseData));
+            } else {
+              console.log(responseData.data);
+            }
+            //console.log('Edit profile response object:', responseData)
+            console.log('contact list response object:', JSON.stringify(responseData))
+            // console.log('access_token ', this.state.access_token)
+            //   console.log('User Phone Number==' + formData.phone_number)
+          })
+          .catch(error => {
+             this.hideLoading();
+            console.error(error)
+          })
+          .done();
+       }
   shareProduct=()=>{
     console.log('hello',this.state.nameBox);
     this.showLoading();
       let formData = new FormData()
-  
       formData.append('user_id', this.state.userId);
       formData.append('type', 0);
       formData.append('product_id',this.state.product_id)
@@ -423,7 +485,7 @@ export default class ShareWithScreen extends React.Component {
       console.log('form data==' + JSON.stringify(formData))
   
       // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var EditProfileUrl = "https://www.cartpedal.com/frontend/web/api-product/product-share"
+      var EditProfileUrl = "http://www.cartpedal.com/frontend/web/api-product/product-share"
       console.log('Add product Url:' + EditProfileUrl)
       fetch(EditProfileUrl, {
         method: 'Post',
@@ -444,7 +506,8 @@ export default class ShareWithScreen extends React.Component {
           if (responseData.code == '200') {
             AsyncStorage.removeItem('@product_id');
             Toast.show(responseData.message);
-            this.props.navigation.navigate('DashBoardScreen');
+            this.ShareProductNotRegisteredUser()
+            // this.props.navigation.navigate('DashBoardScreen');
           } else {
             console.log(responseData.data);
           }
@@ -526,9 +589,9 @@ export default class ShareWithScreen extends React.Component {
         newArrContacts.forEach((items)=>{
           if(items.name&&items.mobile){
             console.log('executed name and mobile',items)
-          this.boxname(items,items.mobile);
+            this.boxname(items.name,items.mobile);
           }else{
-            this.boxname(items,items);
+            this.boxname(items.name,items.mobile);
           }
         })
       }else{
@@ -625,7 +688,6 @@ export default class ShareWithScreen extends React.Component {
           </TouchableOpacity> */}
         </View>):(
           <View style={styles.inputViewStyle}>
-           
              <TouchableOpacity style={{marginLeft:2}}
               onPress={() => {this.setState({showSearch:true})}}>
               <Image

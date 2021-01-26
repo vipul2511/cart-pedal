@@ -19,7 +19,7 @@ class PhoneScreen extends Component {
     this.state = {
       phone_number: '',
       fcmToken:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
     }
   }
   showLoading() {
@@ -60,7 +60,7 @@ componentDidMount(){
       headers: {
         'Content-Type': 'multipart/form-data',
         device_id: '1234',
-        device_token: this.state.fcmToken,
+        device_token:this.state.fcmToken,
         device_type: 'android',
       },
       body: formData,

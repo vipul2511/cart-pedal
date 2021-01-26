@@ -9,7 +9,7 @@ class ForgotPasswordScreen extends Component {
 
     this.state = {
       phone_number: '',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/'
+      baseUrl: 'http://www.cartpedal.com/frontend/web/'
      // baseUrl: 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/',
     }
   }

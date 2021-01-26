@@ -13,7 +13,7 @@ class SignUPWithOtpScreen extends Component {
     this.state = {
       phone_number: '',
       otp: '',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
       fcmToken:''
     }
   }
@@ -52,7 +52,7 @@ class SignUPWithOtpScreen extends Component {
         headers: {
           'Content-Type': 'multipart/form-data',
           device_id: '1234',
-          device_token: this.state.fcmToken,
+          device_token: '1111',
           device_type: 'android',
         },
         body: formData,

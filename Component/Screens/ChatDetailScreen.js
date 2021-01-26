@@ -7,14 +7,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Alert,
+  Animated,
   PermissionsAndroid,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {TextInput} from 'react-native-gesture-handler';
 import DocumentPicker from 'react-native-document-picker';
 import PushNotification from 'react-native-push-notification';
-import ImagePicker from 'react-native-image-picker';
-import ImageCropPicker from 'react-native-image-crop-picker';
+import VideoPlayer from 'react-native-video-player';
+import ImagePicker from 'react-native-image-crop-picker';
+// import ImageCropPicker from 'react-native-image-crop-pick2er';
 import resp from 'rn-responsive-font';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {DocumentDirectoryPath, readFile} from 'react-native-fs';
@@ -24,7 +27,9 @@ import ImageModal from 'react-native-image-modal';
 import Menu, {MenuItem} from 'react-native-material-menu';
 import Clipboard from '@react-native-community/clipboard';
 import Toast from 'react-native-simple-toast';
-
+import moment from 'moment';
+import Swipeable from 'react-native-gesture-handler/Swipeable'
+// import {RNSlidingButton, SlideDirection} from 'rn-sliding-button';
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
 import {MessageComponent} from '../Component/MessageComponent';
@@ -50,6 +55,7 @@ class ChatDetailScreen extends React.Component {
       chatList: {messages: []},
       ischatList: false,
       fcmToken: '',
+      imageshow:true,
       getNotify: '',
       firebaseMsg: '',
       isNotify: false,
@@ -59,8 +65,15 @@ class ChatDetailScreen extends React.Component {
       userAccessToken:'',
       selectedMode: false,
       copyTexts: [],
+      replyMessage:'',
       userId:'',
       page: 1,
+      imageView:'',
+      editMode:true,
+      caption:'',
+      recordStart:true,
+      lengthMesaage:'',
+      showRelymsg:false
     };
     console.log('ttt', JSON.stringify(this.props));
   }
@@ -92,7 +105,13 @@ class ChatDetailScreen extends React.Component {
   };
 
   copyText = ({id, text}) => {
+    console.log({id,text});
     this.setState((p) => ({...p, copyTexts: [...p.copyTexts, {id, text}]}));
+  };
+  replyTo = ( text) => {
+    console.log('reply message');
+    console.log(text);
+    this.setState({replyMessage:text});
   };
 
   copyToClipboard = () => {
@@ -160,14 +179,21 @@ class ChatDetailScreen extends React.Component {
   };
 
   getConversationList = () => {
+    let type;
     let formData = new FormData();
-
+     if(this.props.navigation.state.params.groupId!==0){
+       type=1
+     }else{
+       type=0
+     }
+     console.log('value of type',type);
     formData.append('user_id', this.state.userId);
     formData.append('toid', this.props.navigation.state.params.userid);
+    formData.append('type',type)
     formData.append('msg_type', '0');
     // formData.append('page', this.state.page);
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/conversation', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/conversation', {
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -189,9 +215,11 @@ class ChatDetailScreen extends React.Component {
           });
         } else {
           // alert(responseData.data);
+          this.setState({chatList:''});
 
           console.log('logged user stories' + JSON.stringify(responseData));
         }
+        console.log('logged user stories' + JSON.stringify(responseData));
       })
       .catch((error) => {
         console.error(error);
@@ -199,13 +227,27 @@ class ChatDetailScreen extends React.Component {
   };
 
   sendMessage = () => {
+    let replyID='0';
+    if(this.state.showRelymsg==true){
+      if(this.state.replyMessage.text.fmsg|| this.state.replyMessage.text.tmsg){
+        replyID=this.state.replyMessage.text.id;
+      }
+    }
+    let type;
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     this.setState({message: '', height: 40});
     const messageToSent = {
       ...newMessage,
       msg_type: 'text',
       fmsg: this.state.message,
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
+    console.log('message',messageToSent);
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
     this.setState((p) => ({
       chatList: {
         ...p.chatList,
@@ -213,15 +255,24 @@ class ChatDetailScreen extends React.Component {
       },
       ischatList: true,
     }));
+  }else{
+    this.setState((p)=>({
+      chatList:{
+        message:[ p.chatList.messages,messageToSent]
+      }
+    }))
+  }
     var raw = JSON.stringify({
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'text',
       body: this.state.message,
-      reply_id: '0',
+      reply_id:replyID,
       upload: [],
+      type:type
     });
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    // console.log('raw',JSON.stringify(raw));
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -235,7 +286,9 @@ class ChatDetailScreen extends React.Component {
       .then((response) => response.json())
       .then((responseData) => {
         if (responseData.code === 200) {
-          // console.log('asda', responseData);
+          console.log('asda', responseData);
+          this.setState({selectedMode:false,forwardMessageIds: []})
+          this.setState({showRelymsg:false})
           this.getConversationList();
         } else {
           console.log('logged user stories' + JSON.stringify(responseData));
@@ -248,8 +301,13 @@ class ChatDetailScreen extends React.Component {
   };
 
   uploadFileApi = (datas) => {
+    let type;
     this.setState({open: false});
-
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     const messageToSent = {
       ...newMessage,
       msg_type: 'file',
@@ -258,7 +316,7 @@ class ChatDetailScreen extends React.Component {
         ...newMessage.fattach,
         attach: `${datas.path}.${datas.type.split('/')[1]}`,
       },
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
     this.setState((p) => ({
       chatList: {
@@ -273,6 +331,7 @@ class ChatDetailScreen extends React.Component {
       toid: this.props.navigation.state.params.userid,
       msg_type: 'file',
       reply_id: 0,
+      type:type,
       body: datas.type,
       upload: [
         {
@@ -283,7 +342,7 @@ class ChatDetailScreen extends React.Component {
       ],
     };
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -315,13 +374,19 @@ class ChatDetailScreen extends React.Component {
   };
 
   sendVideo = async (data) => {
+   let type;
+   if(this.props.navigation.state.params.groupId!==0){
+    type='1'
+  }else{
+    type='0'
+  }
     await this.setState({open: false});
     const messageToSent = {
       ...newMessage,
       msg_type: 'video',
       fmsg: '',
       fattach: {...newMessage.fattach, attach: data.path},
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
     this.setState((p) => ({
       chatList: {
@@ -335,6 +400,7 @@ class ChatDetailScreen extends React.Component {
       toid: this.props.navigation.state.params.userid,
       msg_type: 'video',
       reply_id: 0,
+      type:type,
       body: '',
       upload: [
         {
@@ -345,7 +411,7 @@ class ChatDetailScreen extends React.Component {
       ],
     };
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -480,12 +546,19 @@ class ChatDetailScreen extends React.Component {
   };
 
   uploadImage = (datas) => {
+    let type;
     this.setState({open: false});
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     var data = {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'image',
-      reply_id: 0,
+      type:type,
+      reply_id: '0',
       body: 'sfsdfsdfd dsfsdfs',
       upload: [
         {
@@ -496,7 +569,7 @@ class ChatDetailScreen extends React.Component {
           originalRotation: datas.originalRotation,
           path: datas.path,
           type: datas.type,
-          caption: 'hello',
+          caption: this.state.caption,
           uri: '',
           width: datas.width,
           data: datas.data,
@@ -504,7 +577,7 @@ class ChatDetailScreen extends React.Component {
       ],
     };
 
-    axios('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    axios('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -520,7 +593,7 @@ class ChatDetailScreen extends React.Component {
           // console.log('asda', responseData);
           // this.LoginOrNot();
           //   alert("Message sent succesfully")
-
+           this.setState({caption:''})
           this.getConversationList();
         } else {
           // alert(responseData.data);
@@ -534,16 +607,26 @@ class ChatDetailScreen extends React.Component {
       });
   };
 
-  launchCamera = async () => {
-    ImagePicker.launchCamera({mediaType: 'photo'}, async (response) => {
+  launchCamera =  async () => {
+    this.setState({message:''})
+    // ImagePicker.launchCamera({mediaType: 'photo'}, async (response) => {
+      ImagePicker.openCamera({
+        width: 300,
+        height: 400,
+        cropping: true,
+        includeBase64:true
+      }).then(async response => {
+          console.log('image data',response);
+          this.setState({imageshow:false});
+            this.setState({imageView:response});
       // await this.inputRef.focus();
       await this.setState({open: false});
       const messageToSent = {
         ...newMessage,
         msg_type: 'image',
         fmsg: '',
-        fattach: {...newMessage.fattach, attach: response.uri},
-        time: new Date(),
+        fattach: {...newMessage.fattach, attach: response.path},
+        time: moment().format('hh:mm'),
       };
       this.setState((p) => ({
         chatList: {
@@ -552,7 +635,7 @@ class ChatDetailScreen extends React.Component {
         },
         ischatList: true,
       }));
-      this.uploadImage(response);
+      // this.uploadImage(response);
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
@@ -560,7 +643,7 @@ class ChatDetailScreen extends React.Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = {uri: response.uri};
+        const source = {uri: response.path};
 
         // You can also display the image using data:
         // const source = { uri: 'data:image/jpeg;base64,' + response.data };
@@ -569,56 +652,83 @@ class ChatDetailScreen extends React.Component {
           avatarSource: source,
         });
       }
-    });
+    // });
+  });
   };
-
-  imagepicker = () => {
-    ImagePicker.showImagePicker({mediaType: 'photo'}, async (response) => {
-      //  await this.inputRef.focus();
-      await this.setState({open: false});
-      const messageToSent = {
-        ...newMessage,
-        msg_type: 'image',
-        fmsg: '',
-        fattach: {...newMessage.fattach, attach: response.uri},
-        time: new Date(),
-      };
-      this.setState((p) => ({
-        chatList: {
-          ...p.chatList,
-          messages: [...p.chatList.messages, messageToSent],
-        },
-        ischatList: true,
-      }));
-      this.uploadImage(response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-      } else {
-        const source = {uri: response.uri};
-
-        // You can also display the image using data:
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
-        this.setState({
-          avatarSource: source,
-        });
-      }
-    });
-  };
-
-  videoPicker = async () => {
-    ImagePicker.showImagePicker(
-      {
-        title: 'Select Video',
-        takePhotoButtonTitle: 'Record Video',
-        chooseFromLibraryButtonTitle: 'Choose From Gallery',
-        mediaType: 'video',
+   
+  sendImage=async()=>{
+    this.setState({imageshow:true})
+    let response=this.state.imageView;
+    await this.setState({open: false});
+    const messageToSent = {
+      ...newMessage,
+      msg_type: 'image',
+      fmsg: '',
+      fattach: {...newMessage.fattach, attach: response.path},
+      time: moment().format('hh:mm'),
+    };
+    this.setState((p) => ({
+      chatList: {
+        ...p.chatList,
+        messages: [...p.chatList.messages, messageToSent],
       },
-      (response) => {
+      ischatList: true,
+    }));
+    this.uploadImage(response);
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else {
+      const source = {uri: response.path};
+
+      // You can also display the image using data:
+      // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+      this.setState({
+        avatarSource: source,
+      });
+    }
+  }
+  imagepicker = () => {
+    ImagePicker.openPicker({
+      // width: 300,
+      // height: 400,
+      cropping: true,
+      includeBase64:true
+    }).then(async(response)=> {
+      console.log('pickimage==',response);
+      this.setState({imageshow:false});
+      this.setState({imageView:response});
+    // ImagePicker.showImagePicker({mediaType: 'photo'}, async (response) => {
+      //  await this.inputRef.focus();
+    
+    // });
+  });
+  };
+// LeftActions = () => {
+//   const scale = dragX.interpolate({
+//     inputRange: [0, 100],
+//     outputRange: [0, 1],
+//     extrapolate: 'clamp'
+//   })
+//     return (
+//       <View
+//         style={{ flex: 1, backgroundColor: 'blue', justifyContent: 'center' }}>
+//         <Text
+//           style={{
+//             color: 'white',
+//             paddingHorizontal: 10,
+//             fontWeight: '600'
+//           }}>
+//           Left Action
+//         </Text>
+//       </View>
+//     )
+//    }
+  videoPicker = async () => {
+    ImagePicker.openPicker({
+      mediaType: "video",
+    }).then(async (response) => {
+      console.log('video',response);
         // this.uploadFileApi(response);
 
         console.log('Response = ', response);
@@ -637,16 +747,22 @@ class ChatDetailScreen extends React.Component {
           // You can also display the image using data:
           // const source = { uri: 'data:image/jpeg;base64,' + response.data };
         }
-      },
-    );
+  });
   };
 
   sendContact = (contact) => {
+    let type;
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     this.setState({open: false});
     var raw = JSON.stringify({
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'contact',
+      type:type,
       body: JSON.stringify(contact),
       reply_id: '0',
       upload: [],
@@ -656,7 +772,7 @@ class ChatDetailScreen extends React.Component {
       ...newMessage,
       msg_type: 'contact',
       fmsg: JSON.stringify(contact),
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
     this.setState((p) => ({
       chatList: {
@@ -666,7 +782,7 @@ class ChatDetailScreen extends React.Component {
       ischatList: true,
     }));
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -704,13 +820,19 @@ class ChatDetailScreen extends React.Component {
   };
 
   sendAudio = (data) => {
+    let type;
     this.setState({open: false});
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     const messageToSent = {
       ...newMessage,
       msg_type: 'audio',
       fmsg: '',
       fattach: {...newMessage.fattach, attach: data.path},
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
     this.setState((p) => ({
       chatList: {
@@ -723,6 +845,7 @@ class ChatDetailScreen extends React.Component {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'audio',
+      type:type,
       reply_id: 0,
       body: '',
       upload: [
@@ -734,7 +857,7 @@ class ChatDetailScreen extends React.Component {
       ],
     };
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -748,7 +871,7 @@ class ChatDetailScreen extends React.Component {
       .then((response) => response.json())
       .then((responseData) => {
         if (responseData.code === 200) {
-          // console.log('asda', responseData);
+          console.log('asda', responseData);
           // this.LoginOrNot();
           //   alert("Message sent succesfully")
 
@@ -773,7 +896,23 @@ class ChatDetailScreen extends React.Component {
       return;
     });
   };
-
+  createTwoButtonAlert = () =>{
+    if(this.state.recording){
+    Alert.alert(
+      "Audio Record",
+      "Do you want to send this Audio?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "Yes", onPress: () => {this.onStopRecord()} }
+      ],
+      { cancelable: false }
+    );
+    }
+    }
   onStopRecord = async () => {
     const result = await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
@@ -786,11 +925,17 @@ class ChatDetailScreen extends React.Component {
   };
 
   sendLocation = (location) => {
+    let type;
+    if(this.props.navigation.state.params.groupId!==0){
+      type='1'
+    }else{
+      type='0'
+    }
     const messageToSent = {
       ...newMessage,
       msg_type: 'location',
       fmsg: JSON.stringify(location),
-      time: new Date(),
+      time: moment().format('hh:mm'),
     };
 
     this.setState((p) => ({
@@ -805,12 +950,13 @@ class ChatDetailScreen extends React.Component {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'location',
+      type:type,
       body: JSON.stringify(location),
       reply_id: '0',
       upload: [],
     });
 
-    fetch('https://www.cartpedal.com/frontend/web/api-message/sent-message', {
+    fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -868,7 +1014,7 @@ class ChatDetailScreen extends React.Component {
       formData.append('type',type)
       console.log('form data==' + JSON.stringify(formData))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var RecentShare = "https://www.cartpedal.com/frontend/web/api-user/call-notification"
+      var RecentShare = "http://www.cartpedal.com/frontend/web/api-user/call-notification"
       console.log('Add product Url:' + RecentShare)
       console.log('form data general tab',JSON.stringify(formData));
       fetch(RecentShare, {
@@ -887,9 +1033,9 @@ class ChatDetailScreen extends React.Component {
         // this.hideLoading();
           if (responseData.code == '200') {
             if(type==1){
-          this.props.navigation.navigate('VideoCall',{useravatar:this.props.navigation.state.params.useravatar}) 
+          // this.props.navigation.navigate('VideoCall',{useravatar:this.props.navigation.state.params.useravatar}) 
             }else{
-              if(type==0)this.props.navigation.navigate('VoiceCall',{useravatar:this.props.navigation.state.params.useravatar})
+              // if(type==0)this.props.navigation.navigate('VoiceCall',{useravatar:this.props.navigation.state.params.useravatar})
             }
             console.log('call notification',JSON.stringify(responseData));
           } else {
@@ -913,9 +1059,9 @@ class ChatDetailScreen extends React.Component {
 
     data.append('user_id', userId);
     data.append('msgids', msgids.substring(1, msgids.length - 1));
-
+       console.log('message delete',JSON.stringify(data));
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-message/delete-message';
+      'http://www.cartpedal.com/frontend/web/api-message/delete-message';
     console.log('Add product Url:' + EditProfileUrl);
     fetch(EditProfileUrl, {
       method: 'POST',
@@ -931,10 +1077,57 @@ class ChatDetailScreen extends React.Component {
       .then((responseData) => {
         //   this.hideLoading();
         if (responseData.code == '200') {
+          if(this.state.chatList.messages.length===1){
+           this.setState({ischatList:false})
+          }
           this.setState({
             selectedMode: false,
             forwardMessageIds: [],
           });
+          this.getConversationList();
+        } else {
+          console.log(responseData.data);
+        }
+        console.log(
+          'contact list response object:',
+          JSON.stringify(responseData),
+        );
+      })
+      .catch((error) => {
+        //  this.hideLoading();
+        console.error(error);
+      })
+      .finally(() => {});
+  };
+  clearMessages = () => {
+    const {fcmToken, userId, userAccessToken, forwardMessageIds} = this.state;
+
+    const msgids = JSON.stringify(forwardMessageIds);
+
+    const data = new FormData();
+
+    data.append('user_id', userId);
+    data.append('type',0)
+    data.append('toid',this.props.navigation.state.params.userid );
+       console.log('data',JSON.stringify(data))
+    var EditProfileUrl =
+      'http://www.cartpedal.com/frontend/web/api-message/clear-all';
+    console.log('Add product Url:' + EditProfileUrl);
+    fetch(EditProfileUrl, {
+      method: 'POST',
+      headers: {
+        device_id: '1234',
+        device_token: fcmToken,
+        device_type: 'android',
+        Authorization: JSON.parse(userAccessToken),
+      },
+      body: data,
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        //   this.hideLoading();
+        if (responseData.code == '200') {
+        
           //  Toast.show(responseData.message);
           this.getConversationList();
         } else {
@@ -943,7 +1136,7 @@ class ChatDetailScreen extends React.Component {
 
         //console.log('Edit profile response object:', responseData)
         console.log(
-          'contact list response object:',
+          'clear response object:',
           JSON.stringify(responseData),
         );
         // console.log('access_token ', this.state.access_token)
@@ -955,10 +1148,34 @@ class ChatDetailScreen extends React.Component {
       })
       .finally(() => {});
   };
-
+  openProfile=()=>{
+    let items=this.props.navigation.state.params.useravatar;
+    let id=this.props.navigation.state.params.userid;
+    let name=this.props.navigation.state.params.username;
+    let about=this.props.navigation.state.params.userabout;
+    let phone=this.props.navigation.state.params.userphone;
+    let groupid=this.props.navigation.state.params.groupId;
+    if(this.props.navigation.state.params.groupId!==0){
+      if(items){
+        this.props.navigation.navigate('GroupProfile',{imageURL:items,name:name,about:about,phone:phone,groupId:groupid})
+        }else{
+          this.props.navigation.navigate('GroupProfile',{imageURL:'',imageURL:items,name:name,about:about,phone:phone,groupId:groupid})
+        }
+    }else{
+    if(items){
+    this.props.navigation.navigate('ChatProfile',{imageURL:items,name:name,about:about,phone:phone,userid:id})
+    }else{
+      this.props.navigation.navigate('ChatProfile',{imageURL:'',imageURL:items,name:name,about:about,phone:phone,userid:id})
+    }
+  }
+}
+  onSlideRight = () => {
+    //perform Action on slide success.
+};
   render() {
     return (
       <Container style={{backgroundColor: '#F1F0F2'}}>
+       {this.state.imageshow?(<View style={{flex:1}}>
         <View
           style={{
             width: '100%',
@@ -978,7 +1195,7 @@ class ChatDetailScreen extends React.Component {
               width: '100%',
               justifyContent: 'space-between',
               alignItems: 'center',
-            }}>
+            }}  >
             <View style={styles.BackButtonContainer}>
               <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                 <Image
@@ -1010,9 +1227,9 @@ class ChatDetailScreen extends React.Component {
                   alignItems: 'center',
                   justifyContent: 'center',
                   paddingLeft: 8,
-                }}>
+                }} onPress={this.openProfile}>
                 <Text
-                  style={[styles.TitleStyle, {width: 150, textAlign: 'left'}]}>
+                  style={[styles.TitleStyle, {width: 150, textAlign: 'left',fontSize: resp(14)}]}>
                   {this.props.navigation.state.params.username}
                 </Text>
               </TouchableOpacity>
@@ -1020,11 +1237,22 @@ class ChatDetailScreen extends React.Component {
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               {this.state.selectedMode ? (
                 <>
+                 <Icon
+                    name="reply"
+                    type="Entypo"
+                    onPress={() => {
+                      this.setState({showRelymsg:true})
+                      console.log('abc',this.state.replyMessage.text.fmsg);
+                      // this.replyTo();
+                    }}
+                    style={{color: '#2B2B2B', fontSize: 18, marginRight: 15}}
+                  />
                   <Icon
                     name="delete"
                     type="MaterialCommunityIcons"
                     onPress={() => {
-                      this.deleteMessages();
+                      // this.replyTo();
+                      this.deleteMessages()
                     }}
                     style={{color: '#2B2B2B', fontSize: 18, marginRight: 15}}
                   />
@@ -1096,7 +1324,8 @@ class ChatDetailScreen extends React.Component {
                     button={
                       <TouchableOpacity
                         onPress={() => {
-                          //  this._menu.show()
+                           this._menu.show()
+                           
                         }}>
                         <Icon
                           name="more-vertical"
@@ -1109,18 +1338,22 @@ class ChatDetailScreen extends React.Component {
                         />
                       </TouchableOpacity>
                     }>
-                    <MenuItem onPress={() => this._menu.hide()}>
-                      Option 1
+                    <MenuItem onPress={() =>{ this._menu.hide()
+                    this.openProfile
+                    }}>
+                      View Contact
                     </MenuItem>
                     <MenuItem onPress={() => this._menu.hide()}>
-                      Option 2
+                      Media,links,and docs
                     </MenuItem>
-                    <MenuItem onPress={() => this._menu.hide()}>
-                      Option 3
+                    <MenuItem onPress={() => {this._menu.hide()
+                    this.clearMessages()
+                    }}>
+                      Clear Chat
                     </MenuItem>
-                    <MenuItem onPress={() => this._menu.hide()}>
+                    {/* <MenuItem onPress={() => this._menu.hide()}>
                       Option 4
-                    </MenuItem>
+                    </MenuItem> */}
                   </Menu>
                 </>
               )}
@@ -1137,7 +1370,7 @@ class ChatDetailScreen extends React.Component {
           }>
           <ScrollView>
             <View style={{paddingHorizontal: 10, marginTop: '20%'}}>
-              <Text
+              {/* <Text
                 style={{
                   color: 'red',
                   fontSize: 14,
@@ -1146,10 +1379,11 @@ class ChatDetailScreen extends React.Component {
                   fontWeight: 'bold',
                   textTransform: 'uppercase',
                 }}>
-                10 july , friday
-              </Text>
+                {moment().format("DD-MM-YYYY")}
+              </Text> */}
               {this.state.ischatList
                 ? this.state.chatList.messages.map((v, i) => {
+                  console.log('the v values',v.exit);
                     return (
                       <MessageComponent
                         key={`message-${i}`}
@@ -1160,6 +1394,7 @@ class ChatDetailScreen extends React.Component {
                         selectedMode={this.state.selectedMode}
                         forwardMessageIds={this.state.forwardMessageIds}
                         copyText={this.copyText}
+                        replyMessage={this.replyTo}
                       />
                     );
                   })
@@ -1172,7 +1407,7 @@ class ChatDetailScreen extends React.Component {
           <View
             style={{
               width: '90%',
-              height: '35%',
+              height: '25%',
               backgroundColor: '#FFFFFF',
               alignSelf: 'center',
               borderRadius: 10,
@@ -1196,8 +1431,8 @@ class ChatDetailScreen extends React.Component {
                     }}>
                     <Image
                       source={require('../images/docs.png')}
-                      resizeMode="center"
-                      style={{alignSelf: 'center'}}
+                      // resizeMode="center"
+                      style={{width:15,height:20,alignSelf:'center'}}
                     />
                   </View>
                   <Text
@@ -1252,8 +1487,8 @@ class ChatDetailScreen extends React.Component {
                     }}>
                     <Image
                       source={require('../images/gal.png')}
-                      resizeMode="center"
-                      style={{alignSelf: 'center'}}
+                      // resizeMode="center"
+                      style={{width:20,height:15,alignSelf:'center'}}
                     />
                   </View>
                   <Text
@@ -1282,8 +1517,8 @@ class ChatDetailScreen extends React.Component {
                     }}>
                     <Image
                       source={require('../images/audioo.png')}
-                      resizeMode="center"
-                      style={{alignSelf: 'center'}}
+                      // resizeMode="center"
+                      style={{alignSelf: 'center',width:15,height:15}}
                     />
                   </View>
                   <Text
@@ -1309,8 +1544,8 @@ class ChatDetailScreen extends React.Component {
                   }}>
                   <Image
                     source={require('../images/loc.png')}
-                    resizeMode="center"
-                    style={{alignSelf: 'center'}}
+                    // resizeMode="center"
+                    style={{alignSelf: 'center',width:15,height:20}}
                   />
                 </TouchableOpacity>
                 <Text
@@ -1330,8 +1565,8 @@ class ChatDetailScreen extends React.Component {
                     }}>
                     <Image
                       source={require('../images/folw.png')}
-                      resizeMode="center"
-                      style={{alignSelf: 'center'}}
+                      // resizeMode="center"
+                      style={{alignSelf: 'center',width:15,height:20}}
                     />
                   </View>
                   <Text style={{fontSize: 12, color: '#2B2B2B'}}>Contact</Text>
@@ -1340,6 +1575,34 @@ class ChatDetailScreen extends React.Component {
             </View>
           </View>
         )}
+        {this.props.navigation.state.params.groupexit==false?
+        <View> 
+         {this.state.showRelymsg? 
+         this.state.replyMessage.text.fmsg?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showRelymsg:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10}}>
+            <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.fmsg}</Text>
+            </View>
+            </View>):(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto'}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showRelymsg:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10}}>
+            <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tmsg}</Text>
+            </View>
+            </View>)
+             :null} 
         <View
           style={{
             flexDirection: 'row',
@@ -1349,7 +1612,7 @@ class ChatDetailScreen extends React.Component {
                 : height * 0.001,
             alignSelf: 'center',
           }}>
-          <TextInput
+           <TextInput
             ref={(ref) => (this.inputRef = ref)}
             multiline={true}
             value={this.state.message}
@@ -1358,18 +1621,21 @@ class ChatDetailScreen extends React.Component {
             }}
             onChangeText={(text) => this.onChangeText(text)}
             placeholder="Type a message…"
+            editable={this.state.editMode}
             style={{
-              margin: 10,
+              marginLeft: 10,
+              marginRight:10,
+              marginBottom:10,
               backgroundColor: '#FFFFFF',
               color: '#0000008A',
-              borderRadius: 35,
+              borderRadius: 1,
               width: '60%',
               height: this.state.height,
               fontSize: 12,
               paddingLeft: 10,
               borderWidth: 0,
-              borderTopRightRadius: 0,
-              borderBottomRightRadius: 0,
+              borderTopLeftRadius: this.state.showRelymsg?0:15,
+              borderBottomLeftRadius: 15,
             }}
           />
           <View
@@ -1382,30 +1648,34 @@ class ChatDetailScreen extends React.Component {
               alignItems: 'center',
               borderWidth: 0,
               marginLeft: -10,
-              borderTopRightRadius: 35,
-              borderBottomRightRadius: 35,
+              borderTopRightRadius: this.state.showRelymsg?0:15,
+              borderBottomRightRadius: 15,
               paddingBottom: 4,
-              marginBottom: 2,
+              marginBottom: 22,
             }}>
             <View style={{flexDirection: 'row'}}>
               <Icon
                 onPress={() => {
                   this.setState({open: !this.state.open});
+                  this.setState({editMode:!this.state.editMode});
+                  this.setState({message:''})
                 }}
                 name="attachment"
                 type="MaterialIcons"
                 style={{color: '#0000008A', marginRight: 8}}
               />
-              <Icon
+              {!this.state.message.length>0?(<Icon
                 onPress={() => {
                   this.launchCamera();
                 }}
                 name="photo-camera"
                 type="MaterialIcons"
                 style={{color: '#0000008A', marginRight: 8}}
-              />
+              />):null}
             </View>
           </View>
+          <View >
+           
           <View
             style={{
               alignSelf: 'flex-end',
@@ -1415,6 +1685,7 @@ class ChatDetailScreen extends React.Component {
               borderRadius: this.state.recording ? 30 : 20,
               backgroundColor: 'red',
               justifyContent: 'center',
+              
             }}>
             <TouchableOpacity
               onLongPress={() => {
@@ -1422,13 +1693,14 @@ class ChatDetailScreen extends React.Component {
                 this.setState({recording: true});
               }}
               onPressOut={() => {
-                this.onStopRecord();
+                this.createTwoButtonAlert();
                 this.setState({recording: false});
               }}
               onPress={() => {
                 this.sendMessage();
               }}>
               {this.state.message === '' ? (
+                
                 <Icon
                   name="mic"
                   type="Feather"
@@ -1437,7 +1709,7 @@ class ChatDetailScreen extends React.Component {
                     fontSize: 18,
                     alignSelf: 'center',
                   }}
-                />
+                /> 
               ) : (
                 <Icon
                   name="arrowright"
@@ -1447,7 +1719,33 @@ class ChatDetailScreen extends React.Component {
               )}
             </TouchableOpacity>
           </View>
+          </View>
         </View>
+        </View>:<Text style={{margin:10,color:'red'}}>You can't sent message to this group because you're no longer a Participant</Text>}
+        </View>):(
+          <View style={{flex:1,backgroundColor:'black'}}>
+            <ScrollView>
+              <View>
+            <Image source={{uri:this.state.imageView.path}} style={{width:500,height:600}} />
+           <View style={{flexDirection:'row'}}>
+            <TextInput
+            placeholder="Type a caption...."
+            style={{backgroundColor:'#fff',marginTop:15,width:"90%"}}
+            onChangeText={(text)=>{this.setState({caption:text})}}
+             />
+             <View style={{backgroundColor:'red',marginTop:15,justifyContent:'center',alignContent:'center',width:"10%"}}>
+              <Icon
+                  name="arrowright"
+                  type="AntDesign"
+                  onPress={()=>{this.sendImage()}}
+                  style={{fontSize: 20, color: '#FFFFFF', alignSelf: 'center'}}
+                />
+                </View>
+             </View>
+             </View>
+             </ScrollView>
+          </View>
+        )}
       </Container>
     );
   }
@@ -1463,8 +1761,8 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   BackButtonContainer: {
-    flex: 0.2,
-    marginLeft: 10,
+    flex: 0.1,
+    marginLeft:5,
     backgroundColor: 'white',
   },
   backButtonStyle: {
@@ -1487,7 +1785,6 @@ const styles = StyleSheet.create({
   TitleStyle: {
     fontWeight: 'bold',
     color: 'black',
-    fontSize: resp(20),
     textAlign: 'center',
   },
   SearchContainer: {
@@ -1602,7 +1899,7 @@ const newMessage = {
   msg_type: '',
   reply_id: 0,
   tattach: '',
-  time: new Date(),
+  time: moment().format('hh:mm'),
   tmsg: '',
   type: '0',
   sending: true,

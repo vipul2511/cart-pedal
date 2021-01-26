@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 console.disableYellowBox = true;
-
 import {
   StyleSheet,
   View,
@@ -9,6 +8,7 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
+  TextInput
 } from 'react-native';
 import resp from 'rn-responsive-font';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -18,7 +18,9 @@ class NewContactsListScreen extends Component {
     super(props);
     this.state = {
       list: [],
+      masterlist:'',
       spinner: false,
+      showSearch:true,
     };
   }
   showLoading() {
@@ -52,7 +54,7 @@ class NewContactsListScreen extends Component {
 
     this.showLoading();
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-product/contact-list';
+      'http://www.cartpedal.com/frontend/web/api-product/contact-list';
     console.log('Add product Url:' + EditProfileUrl);
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -76,7 +78,7 @@ class NewContactsListScreen extends Component {
         if (responseData.code == '200') {
           //  Toast.show(responseData.message);
           console.log(JSON.stringify(responseData.data, null, 2));
-          this.setState({list: responseData.data.appcontact});
+          this.setState({list: responseData.data.appcontact,masterlist:responseData.data.appcontact});
         } else {
           console.log(responseData.data);
         }
@@ -97,7 +99,25 @@ class NewContactsListScreen extends Component {
         this.hideLoading();
       });
   };
-
+  searchFilterFunction = (text) => {
+    // Check if searched text is not blank
+    console.log('name',text);
+    if (text) {
+      let combineArray=this.state.list
+      const newData = combineArray.filter(
+        function (item) {
+          const itemData = item.name
+            ? item.name.toUpperCase()
+            : ''.toUpperCase();
+          const textData = text.toUpperCase();
+          return itemData.indexOf(textData) > -1;
+      });
+      this.setState({list:newData});
+    } else {
+    this.setState({list:this.state.masterlist});
+    
+    }
+  };
   render() {
     const funct = this;
 
@@ -108,7 +128,7 @@ class NewContactsListScreen extends Component {
           color="#F01738"
           textStyle={styles.spinnerTextStyle}
         />
-        <View style={styles.headerView}>
+       {this.state.showSearch?(<View style={styles.headerView}>
           <View style={styles.BackButtonContainer}>
             <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
               <Image
@@ -124,12 +144,13 @@ class NewContactsListScreen extends Component {
             />
             <TouchableOpacity
               style={{alignItems: 'center', justifyContent: 'center'}}>
-              <Text style={styles.TitleStyle}>CartPadle</Text>
+              <Text style={styles.TitleStyle}>Cartpedal</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.SearchContainer}
             onPress={() => {
+              this.setState({showSearch:false})    
               // this.props.navigation.navigate('SearchBarScreen')
             }}>
             <Image
@@ -137,7 +158,26 @@ class NewContactsListScreen extends Component {
               style={styles.SearchIconStyle}
             />
           </TouchableOpacity>
-        </View>
+        </View>):(
+                    <View style={styles.inputViewStyle}>
+                    <TouchableOpacity style={{marginLeft:2}}
+                     onPress={() => {this.setState({showSearch:true})}}>
+                     <Image
+                       source={require('../images/back_blck_icon.png')}
+                       style={styles.backButtonStyle1}
+                     />
+                   </TouchableOpacity>
+                   <View style={{backgroundColor: '#00000008'}}>
+                            <TextInput
+                                   placeholder="Search"
+                                   placeholderTextColor="#BEBEBE"
+                                   underlineColorAndroid="transparent"
+                                   style={styles.input}
+                                   onChangeText={(text)=>{this.searchFilterFunction(text)}}
+                               />
+                               </View>
+                               </View>
+        )}
 
         <View style={styles.MainContentBox}>
           <ScrollView>
@@ -150,15 +190,17 @@ class NewContactsListScreen extends Component {
                         userid: v.id,
                         username: v.name,
                         useravatar: v.avatar,
+                        groupexit:false,
+                        groupId:0
                       });
                     }}>
-                    <View
+                    {/* <View
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'center',
                         borderBottomWidth: 0.5,
                         color: 'grey',
-                      }}>
+                      }}> */}
                       <View
                         style={{
                           alignSelf: 'center',
@@ -189,8 +231,15 @@ class NewContactsListScreen extends Component {
                             <Text style={styles.PersonNameStyle}>{v.name}</Text>
                           </View>
                         </View>
-                      </View>
+                      {/* </View> */}
                     </View>
+                    <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            borderBottomWidth: 1,
+                            color: 'grey',
+                          }}></View>
                   </TouchableOpacity>
                 );
               })}
@@ -208,7 +257,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#F6F9FE',
   },
-
+  inputViewStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // backgroundColor: '#00000008',
+    backgroundColor: '#fff',
+    width: '100%',
+    marginTop: resp(20),
+   alignContent:'center',
+   alignSelf:'center',
+},
+backButtonStyle1:{
+  margin: 15,
+  height: 20,
+  width: 20,
+},
+input: {
+  color: '#BEBEBE',
+  width: resp(339),
+  height: 50,
+  fontSize:resp(14),
+alignSelf:'flex-end' 
+},
   MainContentBox: {
     flex: 1,
   },

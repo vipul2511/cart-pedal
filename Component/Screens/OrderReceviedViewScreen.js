@@ -10,7 +10,8 @@ import {
   Image,
   TouchableWithoutFeedback,
   SafeAreaView,
-  ScrollView 
+  ScrollView,
+  Share
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import Toast from 'react-native-simple-toast'
@@ -20,6 +21,7 @@ import MenuIcon from './MenuIcon'
 import Spinner from 'react-native-loading-spinner-overlay';
 import AsyncStorage from '@react-native-community/async-storage';
 import SeeMore from 'react-native-see-more-inline';
+import firebase from 'react-native-firebase';
 class OrderRecievedViewScreen extends Component {
   constructor(props) {
     super(props)
@@ -39,7 +41,7 @@ class OrderRecievedViewScreen extends Component {
       avatar:'',
       pickedImage:require('../images/default_user.png'),
      // userNo:'',
-     baseUrl: 'https://www.cartpedal.com/frontend/web/',
+     baseUrl: 'http://www.cartpedal.com/frontend/web/',
       grid_data: [
         {
           MultipleIcon: require('../images/multipleImageIcon.png'),
@@ -167,7 +169,7 @@ class OrderRecievedViewScreen extends Component {
     console.log('form data==' + JSON.stringify(formData));
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -202,13 +204,75 @@ class OrderRecievedViewScreen extends Component {
       })
       .done();
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+link =async()=>{
+ const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+  // let url = await firebase.links().getInitialLink();
+  // console.log('incoming url', url);
+
+firebase.links()
+  .createDynamicLink(link)
+  .then((url) => {
+    console.log('the url',url);
+    this.onShare(url);
+  });
+}
+forwardlink =async(userid)=>{
+  const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+   .android.setPackageName('com.cart.android')
+   .ios.setBundleId('com.cart.ios');
+   // let url = await firebase.links().getInitialLink();
+   // console.log('incoming url', url);
+ 
+ firebase.links()
+   .createDynamicLink(link)
+   .then((url) => {
+     console.log('the url',url);
+    //  this.sendMessage(url,userid);
+    AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+      if(NumberFormat){
+        let numID=JSON.parse(NumberFormat)
+      //   this.setState({PhoneNumber:numID})
+  this.props.navigation.navigate('ForwardLinkScreen', {
+    fcmToken: this.state.fcmToken,
+    PhoneNumber: numID,
+    userId: this.state.userNo,
+    userAccessToken: this.state.userAccessToken,
+    msgids: url,
+  });
+}
+}));
+   });
+ }
   CartListCall() {
     let formData = new FormData()
       formData.append('user_id', this.state.userNo)
       formData.append('type', 2)
       console.log('form data==' + JSON.stringify(formData))
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var CartList = "https://www.cartpedal.com/frontend/web/api-product/cart-list"
+      var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
       console.log('Add product Url:' + CartList)
       console.log('token',this.state.userAccessToken);
       fetch(CartList, {
@@ -281,8 +345,8 @@ class OrderRecievedViewScreen extends Component {
         if (responseData.code == '200') {
          // Toast.show(responseData.message);
          if (
-          responseData.data.covers !== undefined &&
-          responseData.data.covers.length > 0
+          responseData.data[0].covers !== undefined &&
+          responseData.data[0].covers.length > 0
         ){
            let imageArr=[];
            responseData.data[0].covers.map((item)=>{
@@ -395,7 +459,7 @@ class OrderRecievedViewScreen extends Component {
               <View style={styles.ListMenuContainer}>
                 <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
                             // console.log('chat screen',this.state.wholeData.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id})
+                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id,userabout:this.state.ProfileData.about, username:this.state.ProfileData.name,useravatar:this.state.avatar, groupexit:false,groupId:0})
                       }}>
                     <Image
                       source={require('../images/message_icon.png')}
@@ -427,10 +491,12 @@ class OrderRecievedViewScreen extends Component {
                     Toast.show('CLicked Block', Toast.LONG)
                   }}
                   option2Click={() => {
-                    Toast.show('CLicked Shared Link', Toast.LONG)
+                    this.link()
+                    // Toast.show('CLicked Shared Link', Toast.LONG)
                   }}
                   option3Click={() => {
-                    Toast.show('CLicked Forward Link', Toast.LONG)
+                    this.forwardlink()
+                    // Toast.show('CLicked Forward Link', Toast.LONG)
                   }}
                 />
                 </View>
@@ -466,7 +532,9 @@ class OrderRecievedViewScreen extends Component {
                       {'\u20B9'} {item.products[0].price}
                     </Text>
                     <Text style={styles.QtyStyle}>Qty:{item.products[0].quantity}</Text>
-          
+                    {item.products[0].description?<Text style={styles.QtyStyle}>{item.products[0].description}</Text>:null}
+                    {item.products[0].detailone?<Text style={styles.QtyStyle}>{item.products[0].detailone}</Text>:null}
+                    {item.products[0].detailtwo?<Text style={styles.QtyStyle}>{item.products[0].detailtwo}</Text>:null}
                
           
           
@@ -486,10 +554,12 @@ class OrderRecievedViewScreen extends Component {
                       color: 'white',
                     }}
                     option1Click={() => {
-                      Toast.show('CLicked Shared Link', Toast.LONG)
+                      this.link()
+                      // Toast.show('CLicked Shared Link', Toast.LONG)
                     }}
                     option2Click={() => {
-                      Toast.show('CLicked Forward Link', Toast.LONG)
+                      this.forwardlink()
+                      // Toast.show('CLicked Forward Link', Toast.LONG)
           
                       
                     }}

@@ -7,11 +7,13 @@ import {
   Image,
   SafeAreaView,
   TouchableOpacity,
+  Dimensions
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import {SliderBox} from 'react-native-image-slider-box'
-
-
+import ImageModal from 'react-native-image-modal';
+let width = Dimensions.get('window').width;
+let height = Dimensions.get('window').height;
 class ProductDetailImageFullView extends Component{
     constructor (props) {
         super(props)
@@ -34,9 +36,18 @@ class ProductDetailImageFullView extends Component{
               />
           </TouchableOpacity>
             <View style={styles.ImageContainer}>
-             <SliderBox
+            <ImageModal
+                imageBackgroundColor="transparent"
+                source={
+                  this.props.navigation.state.params.images
+                    ? {uri: this.props.navigation.state.params.images}
+                    : require('../images/default_user.png')
+                }
+                style={{width:width, height: resp(500)}}
+              />
+             {/* <SliderBox
                 images={this.state.images}
-                style={styles.sliderImageStyle}></SliderBox>
+                style={styles.sliderImageStyle}></SliderBox> */}
                 </View>
           </SafeAreaView>
         )

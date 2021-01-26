@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   SafeAreaView,
   ActivityIndicator,
+  Share,
   ScrollView
 } from 'react-native'
 import resp from 'rn-responsive-font'
@@ -19,7 +20,7 @@ import ReadMore from 'react-native-read-more-text'
 import AsyncStorage from '@react-native-community/async-storage'
 import Spinner from 'react-native-loading-spinner-overlay';
 import SeeMore from 'react-native-see-more-inline';
-
+import firebase from 'react-native-firebase'
 console.disableYellowBox = true
 
 
@@ -47,7 +48,7 @@ class OpenForProfileScreen extends Component {
       whiteIcon:require('../images/dislike.png'),
       pickedImage:require('../images/default_user.png'),
       ProfileData:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
       grid_data: [
         {
           MultipleIcon: require('../images/multipleImageIcon.png'),
@@ -165,7 +166,7 @@ class OpenForProfileScreen extends Component {
     console.log('form data==' + JSON.stringify(formData));
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -201,6 +202,79 @@ class OpenForProfileScreen extends Component {
       })
       .done();
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+  link =async()=>{
+  //   const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  //    .android.setPackageName('com.cart.android')
+  //    .ios.setBundleId('com.cart.ios');
+  //    // let url = await firebase.links().getInitialLink();
+  //    // console.log('incoming url', url);
+   
+  //  firebase.links()
+  //    .createDynamicLink(link)
+  //    .then((url) => {
+  //      console.log('the url',url);
+  //    });
+  console.log('working')
+     const link = 
+  new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+// console.log('link',JSON.stringify(link));
+firebase.links()
+    .createDynamicLink(link) // <--- (Optional)SHORT or UNGUESSABLE 
+    .then((url) => {
+      console.log('the url',url);
+      this.onShare(url);
+    });
+   }
+   forwardlink =async(userid)=>{
+    const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+     .android.setPackageName('com.cart.android')
+     .ios.setBundleId('com.cart.ios');
+     // let url = await firebase.links().getInitialLink();
+     // console.log('incoming url', url);
+   
+   firebase.links()
+     .createDynamicLink(link)
+     .then((url) => {
+       console.log('the url',url);
+      //  this.sendMessage(url,userid);
+      AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+        if(NumberFormat){
+          let numID=JSON.parse(NumberFormat)
+        //   this.setState({PhoneNumber:numID})
+    this.props.navigation.navigate('ForwardLinkScreen', {
+      fcmToken: this.state.fcmToken,
+      PhoneNumber: numID,
+      userId: this.state.userNo,
+      userAccessToken: this.state.userAccessToken,
+      msgids: url,
+    });
+    }
+    }));
+     });
+   }
   UserProfileCall() {
     let formData = new FormData()
   
@@ -230,13 +304,14 @@ class OpenForProfileScreen extends Component {
         if (responseData.code == '200') {
          // Toast.show(responseData.message);
          if (
-          responseData.data.covers !== undefined &&
-          responseData.data.covers.length > 0
+          responseData.data[0].covers !== undefined &&
+          responseData.data[0].covers.length > 0
         ){
            let imageArr=[];
            responseData.data[0].covers.map((item)=>{
              imageArr.push(item.image);
            });
+           console.log('image array',imageArr);
            this.setState({images:imageArr});
          }
           if(responseData.data[0].about!==null){
@@ -259,7 +334,7 @@ class OpenForProfileScreen extends Component {
         
         this.setState({block_id:responseData.data[0].id});
         this.setState({favourite:responseData.data[0].favourite})
-        console.log('Block========',responseData.data[0].id);
+        console.log('Block========',JSON.stringify(responseData.data));
         console.log('fevtert========',responseData.data[0].favourite);
          
        
@@ -367,7 +442,8 @@ class OpenForProfileScreen extends Component {
               <View style={styles.ListMenuContainer2}>
           <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
                             console.log('chat screen',this.state.wholeData.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id})
+                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id, username:this.props.navigation.state.params.name,userabout:this.state.about,useravatar:this.state.avatar, groupexit:false,groupId:0})
+                        // this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id})
                       }}>
               <Image
                 source={ require('../images/message_icon.png')}
@@ -394,10 +470,11 @@ class OpenForProfileScreen extends Component {
             }}
             //Click functions for the menu items
             option1Click={() => {
-              Toast.show('CLicked Shared Link', Toast.LONG)
+              this.link()
             }}
             option2Click={() => {
-              Toast.show('CLicked Forward Link', Toast.LONG)
+              this.forwardlink()
+              // Toast.show('CLicked Forward Link', Toast.LONG)
             }}
           />
         </View>
@@ -802,7 +879,8 @@ const styles = StyleSheet.create({
     height: resp(30),
     position: 'absolute', //Here is the trick
     bottom: 0,
-    top:75,
+    top:72,
+    
   },
  
  

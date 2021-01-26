@@ -40,7 +40,7 @@ class ProductListScreen extends Component {
         userId: '',
         access_token: '',
         productName: '',
-        baseUrl: 'https://www.cartpedal.com/frontend/web/',
+        baseUrl: 'http://www.cartpedal.com/frontend/web/',
         isModalVisible: false,
         isEditModalVisible: false,
         profilenameViews: false,
@@ -64,6 +64,8 @@ class ProductListScreen extends Component {
         loggeduser_stories:'',
         showTick:null,
         PlusIcon:false,
+        productmaster:[],
+        productDetailInner:[],
         profileImage:require('../images/default_user.png'),
         covers:[require('../images/default_user.png')],
         images: [
@@ -205,7 +207,7 @@ class ProductListScreen extends Component {
   }
   loggedUserstory = () => {
     // this.showLoading();
-    var urlprofile = `https://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-user/user-stories?user_id=${this.state.userId}&type=1`
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
       method: 'GET',
@@ -252,7 +254,7 @@ class ProductListScreen extends Component {
       JSON.stringify({user_id: this.state.userId, type: 1, upload: ImageData}),
     )
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-user/upload-image'
+      'http://www.cartpedal.com/frontend/web/api-user/upload-image'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -303,7 +305,7 @@ class ProductListScreen extends Component {
     console.log('form data==' + JSON.stringify(formData))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var DeleteStoryURL =
-      'https://www.cartpedal.com/frontend/web/api-user/delete-story'
+      'http://www.cartpedal.com/frontend/web/api-user/delete-story'
     console.log('DeleteStory Url:' + DeleteStoryURL)
     fetch(DeleteStoryURL, {
       method: 'Post',
@@ -356,7 +358,7 @@ class ProductListScreen extends Component {
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var EditProfileUrl =
-      'https://www.cartpedal.com/frontend/web/api-user/edit-profile'
+      'http://www.cartpedal.com/frontend/web/api-user/edit-profile'
     console.log('Add product Url:' + EditProfileUrl)
     fetch(EditProfileUrl, {
       method: 'Post',
@@ -417,7 +419,7 @@ class ProductListScreen extends Component {
     // this.showLoading();
     let formData = new FormData()
     var urlprofile =
-      'https://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +
+      'http://www.cartpedal.com/frontend/web/api-user/view-profile?user_id=' +
       this.state.userId
     console.log('profileurl :' + urlprofile)
     fetch(urlprofile, {
@@ -490,7 +492,7 @@ class ProductListScreen extends Component {
   ProductListCall =()=> {
     console.log('access item', this.state.userAccessToken)
     var urlProduct =
-      'https://www.cartpedal.com/frontend/web/api-product/product-list?user_id=' +
+      'http://www.cartpedal.com/frontend/web/api-product/product-list?user_id=' +
       this.state.userId +
       '&type=0'
     console.log('urlProduct :' + urlProduct)
@@ -557,9 +559,9 @@ class ProductListScreen extends Component {
         upload: data,
       }),
     )
-    var otpUrl = 'https://www.cartpedal.com/frontend/web/api-user/add-story'
+    var otpUrl = 'http://www.cartpedal.com/frontend/web/api-user/add-story'
     console.log('Add product Url:' + otpUrl)
-    fetch('https://www.cartpedal.com/frontend/web/api-user/add-story', {
+    fetch('http://www.cartpedal.com/frontend/web/api-user/add-story', {
       method: 'Post',
       headers: {
         'Content-Type': 'application/json',
@@ -598,21 +600,34 @@ class ProductListScreen extends Component {
       .done()
   }
   tickIcon=(items,index)=>{
-    console.log('items in tick ICon',JSON.stringify(items.product_id));
-    let image=[];
+    console.log('items in tick ICon',JSON.stringify(items));
+    let image=this.state.productmaster;
+    let Innerimage=this.state.productDetailInner;
     items.images.map((item)=>{
       let obj={
         path:item.file_url
       }
       image.push(obj);
-    })
+    });
+    {items.images[1]?(items.images.map((item)=>{
+      let obj={
+        path:item.file_url
+      }
+      Innerimage.push(obj);
+    })):null}
+    
     
     console.log('working index',image)
     this.setState({showTick:index});
-    AsyncStorage.setItem('@product_id',JSON.stringify(items.product_id)).then(succ=>{
-      this.props.navigation.navigate('ProductMasterImage',{imageUri:image})
-     });
+      this.setState({productmaster:image});
+      this.setState({productDetailInner:Innerimage})
 
+  }
+  submit=()=>{
+      AsyncStorage.setItem('@product_id',JSON.stringify('14')).then(succ=>{
+      console.log('async storage true')
+      this.props.navigation.navigate('ProductMasterImage',{imageUri:this.state.productmaster,productInner:this.state.productDetailInner})
+     });
   }
   render () {
     return (
@@ -646,12 +661,13 @@ class ProductListScreen extends Component {
           <TouchableOpacity
             style={styles.SearchContainer}
             onPress={() => {
+              this.submit()
               // this.props.navigation.navigate('SearchBarScreen')
             }}>
-            {/* <Image
+            <Image
               source={require('../images/search.png')}
               style={styles.SearchIconStyle}
-            /> */}
+            />
           </TouchableOpacity>
          </View>
             <FlatList
@@ -680,11 +696,11 @@ class ProductListScreen extends Component {
                       source={{uri: item.images[0].file_url}}
                       style={styles.image}
                     />
-                    <TouchableOpacity style={styles.MultipleOptionContainer}>
+                    {item.images[1]?(<TouchableOpacity style={styles.MultipleOptionContainer}>
                       <Image
                         source={require('../images/multipleImageIcon.png')}
                         style={styles.MultipleIconStyle}></Image>
-                    </TouchableOpacity>
+                    </TouchableOpacity>):null}
                     <View>
                       <Text style={styles.itemNameStyle}>{item.name}</Text>
                     </View>

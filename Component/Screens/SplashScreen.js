@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import resp from 'rn-responsive-font';
-
+import firebase from 'react-native-firebase'
 class SplashScreen extends Component {
 
     constructor(props) {
@@ -33,8 +33,20 @@ class SplashScreen extends Component {
 
 
     componentDidMount() {
-
-        this.props.navigation.addListener('willFocus', this.load)
+            
+// firebase.links()
+// .getInitialLink()
+// .then((url) => {
+//     console.log('the get url',url)
+//     if (url) {
+//         console.log('if url',url)
+//         // app opened from a url
+//     } else {
+//         this.props.navigation.addListener('willFocus', this.load)
+//        // app NOT opened from a url
+//     }
+// });
+this.props.navigation.addListener('willFocus', this.load)  
     }
 
     componentWillUnmount() {

@@ -10,7 +10,8 @@ import {
   TouchableWithoutFeedback,
   Image,
   SafeAreaView,
-  ScrollView
+  ScrollView,
+  Share
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import CustomMenuIcon from './CustomMenuIcon'
@@ -19,6 +20,7 @@ import Toast from 'react-native-simple-toast'
 import Spinner from 'react-native-loading-spinner-overlay';
 import AsyncStorage from '@react-native-community/async-storage';
 import SeeMore from 'react-native-see-more-inline';
+import firebase from 'react-native-firebase';
 
 class CartPlaceScreen extends Component {
   constructor(props) {
@@ -195,7 +197,7 @@ console.log('token',this.state.userAccessToken);
 
     console.log('form data==' + JSON.stringify(formData))
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var CartList = "https://www.cartpedal.com/frontend/web/api-product/cart-list"
+    var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
     console.log('Add product Url:' + CartList)
     fetch(CartList, {
       method: 'Post',
@@ -268,7 +270,7 @@ console.log('token',this.state.userAccessToken);
   
       console.log('form data for ask==' + JSON.stringify(formData))
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var AskForStautsURL = "https://www.cartpedal.com/frontend/web/api-product/order-status"
+      var AskForStautsURL = "http://www.cartpedal.com/frontend/web/api-product/order-status"
       console.log(' AskForStautsURL :' + AskForStautsURL)
       fetch(AskForStautsURL, {
         method: 'Post',
@@ -290,22 +292,12 @@ console.log('token',this.state.userAccessToken);
           if (responseData.code == '200') {
              //  this.props.navigation.navigate('StoryViewScreen')
              //   Toast.show(responseData.message);
-               this.setState({OderRecevieProduct:responseData.data});
-             // console.log("value",responseData.data[0].id);
-              // this.setState({block_id:responseData.data[0].id});
-              // console.log('fevtert========',responseData.data[0].favourite);
-              // this.setState({favourite:responseData.data[0].favourite})
-          //   if(responseData.data[0].avatar==null){
-          //     this.setState({avatar:''})
-          //   }else{
-          //     this.setState({avatar:responseData.data[0].avatar});
-          //   }
-          //  // this.SaveProductListData(responseData)
-          //  this.addQuantity(responseData.data);
+            
+                alert('Order is Accepted Successfully');
           } else {
             // alert(responseData.data);
             // alert(responseData.data.password)
-            this.setState({ NoData: true });
+            alert(responseData.message);
           }
   
           console.log('response object ask for:', responseData)
@@ -335,7 +327,7 @@ console.log('token',this.state.userAccessToken);
 
 
   // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+    var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -378,7 +370,68 @@ console.log('token',this.state.userAccessToken);
 
 
   }
+  onShare = async (links) => {
+    try {
+      const result = await Share.share({
+        message:
+          `Get the product at ${links}`,
+          url:`${links}`
+      });
 
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+link =async()=>{
+ const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+  .android.setPackageName('com.cart.android')
+  .ios.setBundleId('com.cart.ios');
+  // let url = await firebase.links().getInitialLink();
+  // console.log('incoming url', url);
+
+firebase.links()
+  .createDynamicLink(link)
+  .then((url) => {
+    console.log('the url',url);
+    this.onShare(url);
+  });
+}
+forwardlink =async(userid)=>{
+  const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+   .android.setPackageName('com.cart.android')
+   .ios.setBundleId('com.cart.ios');
+   // let url = await firebase.links().getInitialLink();
+   // console.log('incoming url', url);
+ 
+ firebase.links()
+   .createDynamicLink(link)
+   .then((url) => {
+     console.log('the url',url);
+    //  this.sendMessage(url,userid);
+    AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+      if(NumberFormat){
+        let numID=JSON.parse(NumberFormat)
+      //   this.setState({PhoneNumber:numID})
+  this.props.navigation.navigate('ForwardLinkScreen', {
+    fcmToken: this.state.fcmToken,
+    PhoneNumber: numID,
+    userId: this.state.userNo,
+    userAccessToken: this.state.userAccessToken,
+    msgids: url,
+  });
+}
+}));
+   });
+ }
 
 
   render() {
@@ -421,13 +474,13 @@ console.log('token',this.state.userAccessToken);
                     {item.about? (<SeeMore style={styles.ProfileDescription} numberOfLines={2}  linkColor="red" seeMoreText="read more" seeLessText="read less">
                         {item.about.substring(0,55)+"..."}
                   </SeeMore>):null}
-                  <Text style={{color:'grey'}}>Order id: {item.orderid}</Text>
+                  <Text style={{color:'grey',marginBottom:10}}>Order id:{item.orderid}  {item.date},{item.time}</Text>
                   </View>
                   </View>
                   <View style={styles.ListMenuContainer}>
                     <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
             console.log('id of user',item.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,userabout:item.about,useravatar:item.avatar, groupexit:false,groupId:0})
                       }}>
                         <Image
                           source={require('../images/message_icon.png')}
@@ -456,10 +509,12 @@ console.log('token',this.state.userAccessToken);
                       }}
                       //Click functions for the menu items
                       option1Click={() => {
-                        Toast.show('CLicked Shared Link', Toast.LONG)
+                        this.link()
+                        // Toast.show('CLicked Shared Link', Toast.LONG)
                       }}
                       option2Click={() => {
-                        Toast.show('CLicked Forward Link', Toast.LONG)
+                        this.forwardlink()
+                        // Toast.show('CLicked Forward Link', Toast.LONG)
                       }}
                     />
                   </View>
@@ -722,7 +777,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   itemBox: {
-    height: resp(350),
+    height: resp(400),
     backgroundColor: 'white',
     flexDirection: 'column',
     shadowColor: 'black',
@@ -866,7 +921,7 @@ const styles = StyleSheet.create({
   ImageContainer: {
     marginTop: resp(-8),
     flexDirection: 'column',
-    width: resp(90),
+    width: resp(140),
     height: resp(133),
     marginLeft: resp(10),
     borderRadius: resp(5),
@@ -948,7 +1003,7 @@ const styles = StyleSheet.create({
     marginTop: resp(20),
     marginLeft:resp(20),
     flexDirection: 'row',
-    flex: 0.65,
+    flex: 0.8,
      width: resp(0),
     height: resp(40),
   },

@@ -1,6 +1,4 @@
 import React, {Component} from 'react'
-console.disableYellowBox = true
-
 import {
   StyleSheet,
   View,
@@ -18,11 +16,66 @@ import {
 import {RFPercentage, RFValue} from 'react-native-responsive-fontsize'
 import resp from 'rn-responsive-font'
 import {color} from 'react-native-reanimated'
-
+import AsyncStorage from '@react-native-community/async-storage'
 class AccountScreen extends Component {
   constructor (props) {
     super(props)
-    this.state = {}
+    this.state = {
+      userId:'',
+      fcmtoken:'',
+      userAccessToken:''
+    }
+  }
+   componentDidMount() {
+  AsyncStorage.getItem('@user_id').then((userId) => {
+    if (userId) {
+      this.setState({ userId: userId });
+      console.log(" Edit user id ====" + this.state.userId);
+      // this.ProductListCall()
+    }
+  });
+  AsyncStorage.getItem('@fcmtoken').then(token => {
+    if (token) {
+      this.setState({fcmtoken: JSON.parse(token)})
+      console.log('device fcm token ====' + this.state.fcmtoken);
+    }
+  });
+  AsyncStorage.getItem('@access_token').then((accessToken) => {
+    if (accessToken) {
+      this.setState({ userAccessToken: accessToken });
+      console.log("Edit access token ====" + this.state.userAccessToken);
+    }
+  });
+}
+  deleteUserApi=()=>{
+    var urlprofile = `http://www.cartpedal.com/frontend/web/api-user/delete-user?user_id=${this.state.userId}`
+    console.log('profileurl :' + urlprofile)
+    fetch(urlprofile, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        device_id: '1234',
+        device_token: this.state.fcmtoken,
+        device_type: 'android',
+        Authorization: JSON.parse(this.state.userAccessToken),
+      },
+    })
+      .then(response => response.json())
+      .then(responseData => {
+        if (responseData.code == '200') {
+          this.props.navigation.navigate('LoginScreen');
+          console.log(
+            'response delete user:',
+            JSON.stringify(responseData),
+          )
+        } else {
+          console.log("logged user stories"+JSON.stringify(responseData));
+        }
+      })
+      .catch(error => {
+        console.error(error)
+      })
+      .done()
   }
   createTwoButtonAlert = () =>
     Alert.alert(
@@ -34,7 +87,7 @@ class AccountScreen extends Component {
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
-        { text: "Yes", onPress: () => console.log("OK Pressed") }
+        { text: "Yes", onPress: () => {this.deleteUserApi()} }
       ],
       { cancelable: false }
     );
@@ -42,8 +95,8 @@ class AccountScreen extends Component {
     try {
       const result = await Share.share({
         message:
-          'Lets download cart pedal.Its Best app for show case your product for Buy,Sell,Chat for make your Business Easy. Get it at https://cartpedal.com/ ',
-          url:'https://cartpedal.com/'
+          'Lets download cart pedal.Its Best app for show case your product for Buy,Sell,Chat for make your Business Easy. Get it at http://cartpedal.com/ ',
+          url:'http://cartpedal.com/'
       });
 
       if (result.action === Share.sharedAction) {

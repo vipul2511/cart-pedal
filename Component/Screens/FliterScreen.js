@@ -147,7 +147,7 @@ class FliterScreen extends Component {
     console.log('form data==' + JSON.stringify(formData))
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-    var fav = 'https://www.cartpedal.com/frontend/web/api-user/block-fav-user'
+    var fav = 'http://www.cartpedal.com/frontend/web/api-user/block-fav-user'
     console.log('Add product Url:' + fav)
     fetch(fav, {
       method: 'Post',
@@ -249,7 +249,7 @@ class FliterScreen extends Component {
 
     // var CartList = this.state.baseUrl + 'api-product/cart-list'
     var FilterURL =
-      'https://www.cartpedal.com/frontend/web/api-product/cart-list'
+      'http://www.cartpedal.com/frontend/web/api-product/cart-list'
     console.log('Filter  Url:' + FilterURL)
     fetch(FilterURL, {
       method: 'Post',
@@ -325,7 +325,7 @@ class FliterScreen extends Component {
   
       console.log('form data for ask==' + JSON.stringify(formData))
      // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var AskForStautsURL = "https://www.cartpedal.com/frontend/web/api-product/order-status"
+      var AskForStautsURL = "http://www.cartpedal.com/frontend/web/api-product/order-status"
       console.log(' AskForStautsURL :' + AskForStautsURL)
       fetch(AskForStautsURL, {
         method: 'Post',
@@ -579,7 +579,7 @@ class FliterScreen extends Component {
                   <View style={styles.ListMenuContainer}>
                     <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
             console.log('id of user',item.id);
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar, groupexit:false,groupId:0})
                       }} >
                                 <Image
                           source={require('../images/message_icon.png')}

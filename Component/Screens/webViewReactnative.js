@@ -4,6 +4,17 @@ import { WebView } from 'react-native-webview';
 import resp from 'rn-responsive-font' 
 // ...
 export default class MyWebComponent extends Component {
+  constructor(props){
+    super(props);
+    this.state={
+     link:'http://cartpedal.com/frontend/web/page/privacy'
+    }
+  }
+  componentDidMount(){
+    console.log('props',JSON.stringify(this.props));
+    if(this.props.navigation.state.params.screenSide=='Signup') this.setState({link:'http://cartpedal.com/frontend/web/page/terms-condition'})
+    if(this.props.navigation.state.params.screenSide=='Signup1') this.setState({link:'http://cartpedal.com/frontend/web/page/privacy'})
+  }
   render() {
     return (
       <View style={{flex:1}}>
@@ -37,7 +48,7 @@ export default class MyWebComponent extends Component {
             /> */}
           </TouchableOpacity>
         </View>
-    <WebView source={{ uri: 'https://reactnative.dev/' }} />
+    <WebView source={{ uri:this.state.link  }} />
     </View>
     );
   }

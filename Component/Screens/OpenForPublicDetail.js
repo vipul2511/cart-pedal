@@ -10,7 +10,8 @@ import {
   Image,
   SafeAreaView,
   Dimensions,
-  ScrollView
+  ScrollView,
+  Share
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import CustomMenuIcon from './CustomMenuIcon'
@@ -19,6 +20,7 @@ import Toast from 'react-native-simple-toast'
 import Spinner from 'react-native-loading-spinner-overlay';
 import SeeMore from 'react-native-see-more-inline';
 import { NavigationActions, withNavigation } from 'react-navigation';
+import firebase from 'react-native-firebase';
 
 let width=Dimensions.get('window').width;
 let height=Dimensions.get('window').height;
@@ -36,6 +38,7 @@ class OpenForPublicDetail extends Component {
       spinner:'',
       about:'',
       favourite:'',
+      fcmToken:'',
       block_id:'',
       wholeData:'',
       userAccessToken:'',
@@ -43,7 +46,7 @@ class OpenForPublicDetail extends Component {
       whiteIcon:require('../images/dislike.png'),
       pickedImage:require('../images/default_user.png'),
       avatar:'',
-      baseUrl: 'https://www.cartpedal.com/frontend/web/',
+      baseUrl: 'http://www.cartpedal.com/frontend/web/',
       grid_data: [
         {
           MultipleIcon: require('../images/multipleImageIcon.png'),
@@ -138,6 +141,13 @@ class OpenForPublicDetail extends Component {
   async componentDidMount() {
    this.showLoading();
      console.log("working ID");
+     AsyncStorage.getItem('@fcmtoken').then((token) => {
+      console.log("Edit user id token=" +token);
+      if (token) {
+        this.setState({ fcmToken: token });
+       
+      }
+    });
      AsyncStorage.getItem('@access_token').then((accessToken) => {
       if (accessToken) {
         this.setState({ userAccessToken: accessToken });
@@ -170,7 +180,7 @@ AddFavourite(){
   console.log('form data==' + JSON.stringify(formData));
 
 // var CartList = this.state.baseUrl + 'api-product/cart-list'
-  var fav = "https://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+  var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
   console.log('Add product Url:' + fav)
   fetch(fav, {
     method: 'Post',
@@ -275,8 +285,68 @@ UserProfileCall() {
     })
 
     .done()
+}
+onShare = async (links) => {
+  try {
+    const result = await Share.share({
+      message:
+        `Get the product at ${links}`,
+        url:`${links}`
+    });
 
+    if (result.action === Share.sharedAction) {
+      if (result.activityType) {
+        // shared with activity type of result.activityType
+      } else {
+        // shared
+      }
+    } else if (result.action === Share.dismissedAction) {
+      // dismissed
+    }
+  } catch (error) {
+    alert(error.message);
+  }
+};
+link =async()=>{
+const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+.android.setPackageName('com.cart.android')
+.ios.setBundleId('com.cart.ios');
+// let url = await firebase.links().getInitialLink();
+// console.log('incoming url', url);
 
+firebase.links()
+.createDynamicLink(link)
+.then((url) => {
+  console.log('the url',url);
+  this.onShare(url);
+});
+}
+forwardlink =async()=>{
+const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
+ .android.setPackageName('com.cart.android')
+ .ios.setBundleId('com.cart.ios');
+ // let url = await firebase.links().getInitialLink();
+ // console.log('incoming url', url);
+
+firebase.links()
+ .createDynamicLink(link)
+ .then((url) => {
+   console.log('the url',url);
+  //  this.sendMessage(url,userid);
+  AsyncStorage.getItem('@Phonecontacts').then((NumberFormat=>{
+    if(NumberFormat){
+      let numID=JSON.parse(NumberFormat)
+    //   this.setState({PhoneNumber:numID})
+this.props.navigation.navigate('ForwardLinkScreen', {
+  fcmToken: this.state.fcmToken,
+  PhoneNumber: numID,
+  userId: this.state.userNo,
+  userAccessToken: this.state.userAccessToken,
+  msgids: url,
+});
+}
+}));
+ });
 }
   actionOnRow(item) {
     console.log('Selected Item :', item)
@@ -366,11 +436,11 @@ UserProfileCall() {
                   this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image,name:this.props.navigation.state.params.name})
                 }}>
                 <Image source={{uri:item.image[0].image}} style={styles.image} />
-                <View style={styles.MultipleOptionContainer}>
+                {item.image[1]?( <View style={styles.MultipleOptionContainer}>
                   <Image
                     source={require('../images/multipleImageIcon.png')}
                     style={styles.MultipleIconStyle}></Image>
-                </View>
+                </View>):null}
                 <View>
                   <Text style={styles.itemNameStyle}>{item.name}</Text>
                 </View>
@@ -384,7 +454,7 @@ UserProfileCall() {
                     </View>
                     </View>
                     <TouchableOpacity style={styles.eyeButtonContainer}  onPress={() => {
-                  this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image[0].image})
+                   this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image,name:this.props.navigation.state.params.name})
                 }}>
                       <Image source={require('../images/shopping-cart-Icon.png')} style={styles.ShopingCartStyle}></Image>
           
@@ -408,15 +478,13 @@ UserProfileCall() {
           }}
           
           option1Click={() => {
-          
-          
-          
-          
-          Toast.show('CLicked Shared Link', Toast.LONG)
+            this.link()
+          // Toast.show('CLicked Shared Link', Toast.LONG)
           
           }}
           option2Click={() => {
-          Toast.show('CLicked Forward Link', Toast.LONG)
+            this.forwardlink()
+          // Toast.show('CLicked Forward Link', Toast.LONG)
           
           
           }}

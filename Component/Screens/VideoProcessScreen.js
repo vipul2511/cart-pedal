@@ -3,7 +3,6 @@ import {Button, StyleSheet, Text, View} from 'react-native';
 import {Trimmer, VideoPlayer} from 'react-native-video-processing';
 import {readFile} from 'react-native-fs';
 import Video from 'react-native-video-controls';
-
 function pad(num) {
   return ('0' + num).slice(-2);
 }

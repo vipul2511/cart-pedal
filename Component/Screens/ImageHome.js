@@ -197,13 +197,14 @@ export default class ImageHome extends React.Component {
     }
   }
   shareProduct = () => {
-    AsyncStorage.getItem('@product_id').then((id) => {
-      if (id) {
-        this.props.navigation.navigate('ShareWithScreen');
-      } else {
-        alert('Please upload the product');
-      }
-    });
+    this.props.navigation.navigate('ShareWithScreen');
+    // AsyncStorage.getItem('@product_id').then((id) => {
+    //   if (id) {
+    //     this.props.navigation.navigate('ShareWithScreen');
+    //   } else {
+    //     alert('Please upload the product');
+    //   }
+    // });
   }
   render() {
     console.log("render() --------------->")
