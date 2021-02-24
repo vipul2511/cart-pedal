@@ -8,8 +8,10 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  Modal,
   Animated,
   PermissionsAndroid,
+  ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {TextInput} from 'react-native-gesture-handler';
@@ -59,6 +61,7 @@ class ChatDetailScreen extends React.Component {
       getNotify: '',
       firebaseMsg: '',
       isNotify: false,
+      deletemodal:false,
       recievedmsg: '',
       recording: false,
       forwardMessageIds: [],
@@ -67,13 +70,21 @@ class ChatDetailScreen extends React.Component {
       copyTexts: [],
       replyMessage:'',
       userId:'',
+      showfilerply:false,
       page: 1,
       imageView:'',
       editMode:true,
       caption:'',
       recordStart:true,
+      borderval:false,
       lengthMesaage:'',
-      showRelymsg:false
+      showRelymsg:false,
+      showEveryone:false,
+      showimagerply:false,
+      showaudiorply:false,
+      showvideorply:false,
+      showcontactrply:false,
+      showlocationmsg:false
     };
     console.log('ttt', JSON.stringify(this.props));
   }
@@ -111,6 +122,13 @@ class ChatDetailScreen extends React.Component {
   replyTo = ( text) => {
     console.log('reply message');
     console.log(text);
+    if(this.props.navigation.state.params.msg_type=="1" && text.text.tname==""){
+      this.setState({showEveryone:true})
+    }else{
+      if(text.text.fmsg!="") this.setState({showEveryone:true})
+      
+    }
+    
     this.setState({replyMessage:text});
   };
 
@@ -131,9 +149,9 @@ class ChatDetailScreen extends React.Component {
   };
 
   componentDidMount = () => {
+    // this.focusListener = this.props.navigation.addListener("willFocus", () => {
     let test;
     var _this = this;
-
     AsyncStorage.getItem('@user_id').then((userId) => {
       if (userId) {
         this.setState({userId: userId});
@@ -144,6 +162,7 @@ class ChatDetailScreen extends React.Component {
       console.log('Edit user id token=' + token);
       if (token) {
         this.setState({fcmToken: token});
+        this.convertEmoji('128522')
       }
     });
     AsyncStorage.getItem('@access_token').then((accessToken) => {
@@ -158,16 +177,20 @@ class ChatDetailScreen extends React.Component {
         this.setState({PhoneNumber: JSON.parse(mobile)});
       }
     });
+    console.log('props of group ',this.props.navigation.state.params.groupexit);
+  // });
   };
 
   componentDidUpdate = () => {
+ 
     PushNotification.configure({
       onRegister: function (token) {
         //process token
       },
       onNotification: function (notification) {
+        console.log('Asd', notification.message);
         this.getConversationList();
-        console.log('Asd', notification);
+        console.log('Asd', notification.message);
         isMsg = true;
         firebasemsg = notification.message;
         this.setState({firebaseMsg: JSON.parse(notification.message)});
@@ -176,22 +199,26 @@ class ChatDetailScreen extends React.Component {
     });
 
     console.log('sss', this.state.recievedmsg);
+    
   };
 
   getConversationList = () => {
     let type;
     let formData = new FormData();
-     if(this.props.navigation.state.params.groupId!==0){
-       type=1
+    console.log('group value',this.props.navigation.state.params.msg_type);
+     if(this.props.navigation.state.params.msg_type=="0"){
+       type="0"
      }else{
-       type=0
+       console.log('working');
+       type="1"
      }
      console.log('value of type',type);
     formData.append('user_id', this.state.userId);
-    formData.append('toid', this.props.navigation.state.params.userid);
-    formData.append('type',type)
+    formData.append('toid',this.props.navigation.state.params.userid);
+    formData.append('type',this.props.navigation.state.params.msg_type)
     formData.append('msg_type', '0');
     // formData.append('page', this.state.page);
+    console.log('form data',JSON.stringify(formData));
 
     fetch('http://www.cartpedal.com/frontend/web/api-message/conversation', {
       method: 'POST',
@@ -228,21 +255,43 @@ class ChatDetailScreen extends React.Component {
 
   sendMessage = () => {
     let replyID='0';
-    if(this.state.showRelymsg==true){
+    let msg_type='text'
+    
+    if(this.state.showRelymsg==true && this.state.replyMessage!=''){
       if(this.state.replyMessage.text.fmsg|| this.state.replyMessage.text.tmsg){
         replyID=this.state.replyMessage.text.id;
       }
     }
+    if(this.state.showimagerply==true && this.state.replyMessage!=''){
+        replyID=this.state.replyMessage.text.id;
+    }
+    if(this.state.showaudiorply==true  && this.state.replyMessage!=''){
+      replyID=this.state.replyMessage.text.id;
+    }
+    if(this.state.showlocationmsg==true  && this.state.replyMessage!=''){
+      replyID=this.state.replyMessage.text.id;
+    }
+    if(this.state.showfilerply=true  && this.state.replyMessage!=''){
+      replyID=this.state.replyMessage.text.id;
+    }
+    if(this.state.showcontactrply==true  && this.state.replyMessage!=''){
+      replyID=this.state.replyMessage.text.id;
+    }
+    if(this.state.showvideorply==true  && this.state.replyMessage!=''){
+      replyID=this.state.replyMessage.text.id;
+    }
     let type;
-    if(this.props.navigation.state.params.groupId!==0){
-      type='1'
+    console.log('group id',this.props.navigation.state.params.msg_type)
+    if(this.props.navigation.state.params.msg_type==0){
+      console
+      type="0"
     }else{
-      type='0'
+      type="1"
     }
     this.setState({message: '', height: 40});
     const messageToSent = {
       ...newMessage,
-      msg_type: 'text',
+      msg_type: msg_type,
       fmsg: this.state.message,
       time: moment().format('hh:mm'),
     };
@@ -265,13 +314,13 @@ class ChatDetailScreen extends React.Component {
     var raw = JSON.stringify({
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
-      msg_type: 'text',
+      msg_type: msg_type,
       body: this.state.message,
       reply_id:replyID,
       upload: [],
-      type:type
+      type:this.props.navigation.state.params.msg_type
     });
-    // console.log('raw',JSON.stringify(raw));
+    console.log('raw',JSON.stringify(raw));
     fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
       headers: {
@@ -287,8 +336,9 @@ class ChatDetailScreen extends React.Component {
       .then((responseData) => {
         if (responseData.code === 200) {
           console.log('asda', responseData);
-          this.setState({selectedMode:false,forwardMessageIds: []})
-          this.setState({showRelymsg:false})
+          replyID='0'
+          this.setState({selectedMode:false,forwardMessageIds: []});
+          this.setState({showRelymsg:false,showaudiorply:false,showimagerply:false,showlocationmsg:false,showfilerply:false,showcontactrply:false,showvideorply:false});
           this.getConversationList();
         } else {
           console.log('logged user stories' + JSON.stringify(responseData));
@@ -303,7 +353,7 @@ class ChatDetailScreen extends React.Component {
   uploadFileApi = (datas) => {
     let type;
     this.setState({open: false});
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type!==0){
       type='1'
     }else{
       type='0'
@@ -318,20 +368,28 @@ class ChatDetailScreen extends React.Component {
       },
       time: moment().format('hh:mm'),
     };
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
 
     var data = {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'file',
       reply_id: 0,
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       body: datas.type,
       upload: [
         {
@@ -375,7 +433,7 @@ class ChatDetailScreen extends React.Component {
 
   sendVideo = async (data) => {
    let type;
-   if(this.props.navigation.state.params.groupId!==0){
+   if(this.props.navigation.state.params.msg_type!==0){
     type='1'
   }else{
     type='0'
@@ -388,19 +446,27 @@ class ChatDetailScreen extends React.Component {
       fattach: {...newMessage.fattach, attach: data.path},
       time: moment().format('hh:mm'),
     };
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
     var data = {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'video',
       reply_id: 0,
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       body: '',
       upload: [
         {
@@ -548,7 +614,7 @@ class ChatDetailScreen extends React.Component {
   uploadImage = (datas) => {
     let type;
     this.setState({open: false});
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type!==0){
       type='1'
     }else{
       type='0'
@@ -557,7 +623,7 @@ class ChatDetailScreen extends React.Component {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'image',
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       reply_id: '0',
       body: 'sfsdfsdfd dsfsdfs',
       upload: [
@@ -628,13 +694,22 @@ class ChatDetailScreen extends React.Component {
         fattach: {...newMessage.fattach, attach: response.path},
         time: moment().format('hh:mm'),
       };
-      this.setState((p) => ({
-        chatList: {
-          ...p.chatList,
-          messages: [...p.chatList.messages, messageToSent],
-        },
-        ischatList: true,
-      }));
+      if(this.state.ischatList&& this.state.chatList.messages.length>0){
+        this.setState((p) => ({
+          chatList: {
+            ...p.chatList,
+            messages: [...p.chatList.messages, messageToSent],
+          },
+          ischatList: true,
+        }));
+      }else{
+        this.setState((p)=>({
+          chatList:{
+            message:[ p.chatList.messages,messageToSent]
+          }
+        }))
+      }
+      
       // this.uploadImage(response);
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -667,13 +742,22 @@ class ChatDetailScreen extends React.Component {
       fattach: {...newMessage.fattach, attach: response.path},
       time: moment().format('hh:mm'),
     };
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
+   
     this.uploadImage(response);
     if (response.didCancel) {
       console.log('User cancelled image picker');
@@ -752,7 +836,7 @@ class ChatDetailScreen extends React.Component {
 
   sendContact = (contact) => {
     let type;
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type!==0){
       type='1'
     }else{
       type='0'
@@ -762,7 +846,7 @@ class ChatDetailScreen extends React.Component {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'contact',
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       body: JSON.stringify(contact),
       reply_id: '0',
       upload: [],
@@ -774,13 +858,22 @@ class ChatDetailScreen extends React.Component {
       fmsg: JSON.stringify(contact),
       time: moment().format('hh:mm'),
     };
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
+  
 
     fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
       method: 'POST',
@@ -822,7 +915,7 @@ class ChatDetailScreen extends React.Component {
   sendAudio = (data) => {
     let type;
     this.setState({open: false});
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type!==0){
       type='1'
     }else{
       type='0'
@@ -834,18 +927,26 @@ class ChatDetailScreen extends React.Component {
       fattach: {...newMessage.fattach, attach: data.path},
       time: moment().format('hh:mm'),
     };
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
     var data = {
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'audio',
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       reply_id: 0,
       body: '',
       upload: [
@@ -926,7 +1027,7 @@ class ChatDetailScreen extends React.Component {
 
   sendLocation = (location) => {
     let type;
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type!==0){
       type='1'
     }else{
       type='0'
@@ -937,20 +1038,26 @@ class ChatDetailScreen extends React.Component {
       fmsg: JSON.stringify(location),
       time: moment().format('hh:mm'),
     };
-
-    this.setState((p) => ({
-      chatList: {
-        ...p.chatList,
-        messages: [...p.chatList.messages, messageToSent],
-      },
-      ischatList: true,
-    }));
-
+    if(this.state.ischatList&& this.state.chatList.messages.length>0){
+      this.setState((p) => ({
+        chatList: {
+          ...p.chatList,
+          messages: [...p.chatList.messages, messageToSent],
+        },
+        ischatList: true,
+      }));
+    }else{
+      this.setState((p)=>({
+        chatList:{
+          message:[ p.chatList.messages,messageToSent]
+        }
+      }))
+    }
     var raw = JSON.stringify({
       user_id: this.state.userId,
       toid: this.props.navigation.state.params.userid,
       msg_type: 'location',
-      type:type,
+      type:this.props.navigation.state.params.msg_type,
       body: JSON.stringify(location),
       reply_id: '0',
       upload: [],
@@ -1004,6 +1111,7 @@ class ChatDetailScreen extends React.Component {
   };
 
   onChangeText = (text) => {
+    this.emojiUnicode(text)
     this.setState({message: text});
   };
   NotificationCallPhone=(type)=> {
@@ -1050,7 +1158,7 @@ class ChatDetailScreen extends React.Component {
         .done()
       }
 
-  deleteMessages = () => {
+  deleteMessages = (type) => {
     const {fcmToken, userId, userAccessToken, forwardMessageIds} = this.state;
 
     const msgids = JSON.stringify(forwardMessageIds);
@@ -1059,6 +1167,7 @@ class ChatDetailScreen extends React.Component {
 
     data.append('user_id', userId);
     data.append('msgids', msgids.substring(1, msgids.length - 1));
+    data.append('type',type)
        console.log('message delete',JSON.stringify(data));
     var EditProfileUrl =
       'http://www.cartpedal.com/frontend/web/api-message/delete-message';
@@ -1082,6 +1191,7 @@ class ChatDetailScreen extends React.Component {
           }
           this.setState({
             selectedMode: false,
+            showEveryone:false,
             forwardMessageIds: [],
           });
           this.getConversationList();
@@ -1107,7 +1217,7 @@ class ChatDetailScreen extends React.Component {
     const data = new FormData();
 
     data.append('user_id', userId);
-    data.append('type',0)
+    data.append('type','0')
     data.append('toid',this.props.navigation.state.params.userid );
        console.log('data',JSON.stringify(data))
     var EditProfileUrl =
@@ -1129,7 +1239,7 @@ class ChatDetailScreen extends React.Component {
         if (responseData.code == '200') {
         
           //  Toast.show(responseData.message);
-          this.getConversationList();
+          this.setState({chatList:''});
         } else {
           console.log(responseData.data);
         }
@@ -1148,14 +1258,40 @@ class ChatDetailScreen extends React.Component {
       })
       .finally(() => {});
   };
+ emojiUnicode=(emoji)=>{
+    var comp;
+    
+    if (emoji.length === 1) {
+        comp = emoji.charCodeAt(0);
+    }
+    comp = (
+        (emoji.charCodeAt(0) - 0xD800) * 0x400
+      + (emoji.charCodeAt(1) - 0xDC00) + 0x10000
+    );
+    if (comp < 0) {
+        comp = emoji.charCodeAt(0);
+    }
+    console.log('comp',comp)
+    return comp.toString("16");
+    
+};
+convertEmoji=(text)=> {
+  console.log('emoji',text)
+  return text.replace(/\\u[\dA-F]{4}/gi, function(match) {
+      return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+  });
+
+}
   openProfile=()=>{
+    console.log('group id',this.props.navigation.state.params.groupId);
+    console.log('group id',this.state.userId);
     let items=this.props.navigation.state.params.useravatar;
     let id=this.props.navigation.state.params.userid;
     let name=this.props.navigation.state.params.username;
     let about=this.props.navigation.state.params.userabout;
     let phone=this.props.navigation.state.params.userphone;
     let groupid=this.props.navigation.state.params.groupId;
-    if(this.props.navigation.state.params.groupId!==0){
+    if(this.props.navigation.state.params.msg_type=="1"){
       if(items){
         this.props.navigation.navigate('GroupProfile',{imageURL:items,name:name,about:about,phone:phone,groupId:groupid})
         }else{
@@ -1172,6 +1308,75 @@ class ChatDetailScreen extends React.Component {
   onSlideRight = () => {
     //perform Action on slide success.
 };
+SendReportIssue() {
+  console.log('working send report')
+  let formData = new FormData()
+  formData.append('user_id', this.state.userId)
+  formData.append('reason','Report User')
+  formData.append('message','Something went wrong with this user')
+  console.log('form data==' + JSON.stringify(formData))
+ // var otpUrl= 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/api-user/send-otp'
+  
+  var otpUrl ='http://www.cartpedal.com/frontend/web/api-user/report-problem'
+  console.log('url:' + otpUrl)
+  fetch(otpUrl, {
+    method: 'Post',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      device_id: '1234',
+      device_token:this.state.fcmToken,
+      device_type: 'android',
+      Authorization: JSON.parse(this.state.userAccessToken),
+    },
+    body: formData,
+  })
+    .then(response => response.json())
+    .then(responseData => {
+
+      if (responseData.code == '200') {
+      //   this.props.navigation.navigate('LoginScreen')
+      alert(responseData.data)
+           console.log(responseData);
+      } 
+      else {
+          alert(responseData.message);
+        console.log(responseData)
+      }
+      
+     
+    })
+    .catch(error => {
+      console.error(error)
+    })
+
+    .done()
+}
+replytype=()=>{
+  let replymsg=this.state.replyMessage;
+  if(replymsg.text.msg_type=="text"){
+    this.setState({showRelymsg:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="location"){
+    this.setState({showlocationmsg:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="image"){
+    this.setState({showimagerply:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="audio"){
+    this.setState({showaudiorply:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="video"){
+    this.setState({showvideorply:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="contact"){
+    this.setState({showcontactrply:true,borderval:true});
+  }
+  if(replymsg.text.msg_type=="file"){
+    this.setState({showfilerply:true,borderval:true});
+  }
+
+ 
+}
   render() {
     return (
       <Container style={{backgroundColor: '#F1F0F2'}}>
@@ -1226,10 +1431,10 @@ class ChatDetailScreen extends React.Component {
                 style={{
                   alignItems: 'center',
                   justifyContent: 'center',
-                  paddingLeft: 8,
+                  paddingLeft: 4,
                 }} onPress={this.openProfile}>
                 <Text
-                  style={[styles.TitleStyle, {width: 150, textAlign: 'left',fontSize: resp(14)}]}>
+                  style={[styles.TitleStyle, { textAlign: 'left',fontSize: resp(15)}]}>
                   {this.props.navigation.state.params.username}
                 </Text>
               </TouchableOpacity>
@@ -1241,7 +1446,7 @@ class ChatDetailScreen extends React.Component {
                     name="reply"
                     type="Entypo"
                     onPress={() => {
-                      this.setState({showRelymsg:true})
+                     this.replytype()
                       console.log('abc',this.state.replyMessage.text.fmsg);
                       // this.replyTo();
                     }}
@@ -1251,8 +1456,9 @@ class ChatDetailScreen extends React.Component {
                     name="delete"
                     type="MaterialCommunityIcons"
                     onPress={() => {
-                      // this.replyTo();
-                      this.deleteMessages()
+                      this.setState({deletemodal:true})
+                      // this.deleteMessages()
+
                     }}
                     style={{color: '#2B2B2B', fontSize: 18, marginRight: 15}}
                   />
@@ -1339,7 +1545,7 @@ class ChatDetailScreen extends React.Component {
                       </TouchableOpacity>
                     }>
                     <MenuItem onPress={() =>{ this._menu.hide()
-                    this.openProfile
+                    this.openProfile()
                     }}>
                       View Contact
                     </MenuItem>
@@ -1351,9 +1557,11 @@ class ChatDetailScreen extends React.Component {
                     }}>
                       Clear Chat
                     </MenuItem>
-                    {/* <MenuItem onPress={() => this._menu.hide()}>
-                      Option 4
-                    </MenuItem> */}
+                    <MenuItem onPress={() => {this._menu.hide()
+                    this.SendReportIssue()
+                    }}>
+                      Report user
+                    </MenuItem>
                   </Menu>
                 </>
               )}
@@ -1575,10 +1783,10 @@ class ChatDetailScreen extends React.Component {
             </View>
           </View>
         )}
-        {this.props.navigation.state.params.groupexit==false?
+        {this.props.navigation.state.params.groupexit==false || this.props.navigation.state.params.groupexit==undefined  ?
         <View> 
-         {this.state.showRelymsg? 
-         this.state.replyMessage.text.fmsg?
+         {this.state.showRelymsg==true? 
+         this.state.replyMessage.text.fmsg!==""?
          (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
            <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
              <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
@@ -1590,7 +1798,7 @@ class ChatDetailScreen extends React.Component {
            <View style={{marginLeft:10,marginTop:5,marginRight:10}}>
             <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.fmsg}</Text>
             </View>
-            </View>):(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto'}}> 
+            </View>):(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
            <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
              <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
              <View >
@@ -1603,6 +1811,269 @@ class ChatDetailScreen extends React.Component {
             </View>
             </View>)
              :null} 
+              {this.state.showimagerply==true? 
+         this.state.replyMessage.text.fattach!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showimagerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+             
+            <Image style={{marginBottom:5,color:'#191919',width:40,height:40,alignSelf:'flex-end'}} source={{uri:this.state.replyMessage.text.fattach.attach}}></Image>
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showimagerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10}}>
+           <Image style={{marginBottom:5,color:'#191919',width:40,height:40,alignSelf:'flex-end'}} source={{uri:this.state.replyMessage.text.tattach.attach}}></Image>
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null} 
+                  {this.state.showaudiorply==true? 
+         this.state.replyMessage.text.fattach!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showaudiorply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="mic"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919'}}>Voice message</Text>
+            
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showaudiorply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="mic"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919'}}>Voice message</Text>
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null} 
+              {this.state.showcontactrply==true? 
+         this.state.replyMessage.text.fmsg!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showcontactrply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="user"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:8}}>Contact</Text>
+            
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showcontactrply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="user"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:8}}>Contact</Text>
+            
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null} 
+            {this.state.showfilerply==true? 
+         this.state.replyMessage.text.fattach!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showfilerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="file"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:5}}>Document</Text>
+            
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showfilerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="file"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:5}}>Document</Text>
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null} 
+              {this.state.showvideorply==true? 
+         this.state.replyMessage.text.fattach!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showfilerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="video"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:5}}>Video</Text>
+            
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showfilerply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="video"
+                  type="Feather"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:5}}>Video</Text>
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null} 
+
+{this.state.showlocationmsg==true? 
+         this.state.replyMessage.text.fmsg!=""?
+         (<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'red'}}>You</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showlocationmsg:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="location"
+                  type="Entypo"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:8}}>Location</Text>
+            
+            </View>
+            </View>):this.state.replyMessage.text.tattach!=""?(<View style={{width:'80%',backgroundColor:'#e5e5e5', marginHorizontal:15,height:'auto',borderTopRightRadius:10,borderTopLeftRadius:10}}> 
+           <View style={{marginLeft:10,marginTop:5,flexDirection:'row'}}>
+             <Text style={{fontSize:16,fontWeight:"bold",color:'green'}}>{this.props.navigation.state.params.username}</Text>
+             <View >
+           <Icon type="Entypo" name="cross" style={{fontSize:20,textAlign:'right'}} onPress={()=>{this.setState({showcontactrply:false,selectedMode: false, forwardMessageIds: [],})}}    />
+           </View>
+             {/* <View style={{borderWidth:1,borderColor:'red'}}></View> */}
+             </View>
+           <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+           <Icon
+                  name="location"
+                  type="Entypo"
+                  style={{
+                    color: 'black',
+                    fontSize: 18,
+                    alignSelf: 'center',
+                  }}
+                /> 
+           <Text style={{marginBottom:5,color:'#191919',marginLeft:8}}>Location</Text>
+            
+            {/* <Text style={{marginBottom:5,color:'#191919'}}>{this.state.replyMessage.text.tattach.attach}</Text> */}
+            </View>
+            </View>):null
+             :null}
+             
+             
         <View
           style={{
             flexDirection: 'row',
@@ -1631,10 +2102,10 @@ class ChatDetailScreen extends React.Component {
               borderRadius: 1,
               width: '60%',
               height: this.state.height,
-              fontSize: 12,
+              fontSize: 15,
               paddingLeft: 10,
               borderWidth: 0,
-              borderTopLeftRadius: this.state.showRelymsg?0:15,
+              borderTopLeftRadius: this.state.borderval?0:15,
               borderBottomLeftRadius: 15,
             }}
           />
@@ -1648,7 +2119,7 @@ class ChatDetailScreen extends React.Component {
               alignItems: 'center',
               borderWidth: 0,
               marginLeft: -10,
-              borderTopRightRadius: this.state.showRelymsg?0:15,
+              borderTopRightRadius: this.state.borderval?0:15,
               borderBottomRightRadius: 15,
               paddingBottom: 4,
               marginBottom: 22,
@@ -1746,6 +2217,31 @@ class ChatDetailScreen extends React.Component {
              </ScrollView>
           </View>
         )}
+          <Modal
+              animationType='slide'
+              transparent={true}
+              visible={this.state.deletemodal}
+              onRequestClose={() => this.closeModal()}>
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <View>
+                    <View >
+                  <Text style={{margin:15,fontSize:15}}>{'Delete Message ?'}</Text>
+                  </View>
+                  <TouchableOpacity style={{alignItems:'flex-end',margin:10}} onPress={()=>{this.deleteMessages("1")}}>
+                    <Text style={{color:'red'}}>DELETE FOR ME</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{alignItems:'flex-end',margin:10}} onPress={()=>{this.setState({deletemodal:false,selectedMode: false,
+                        forwardMessageIds: [],showEveryone:false})}}>
+                    <Text style={{color:'red'}}>CANCEL</Text>
+                  </TouchableOpacity>
+                 {this.state.showEveryone?<TouchableOpacity style={{alignItems:'flex-end',margin:10}} onPress={()=>{this.deleteMessages("0")}}>
+                    <Text style={{color:'red'}}>DELETE FOR EVERYONE</Text>
+                  </TouchableOpacity>:null}
+                  </View>
+                </View>
+              </View>
+            </Modal>
       </Container>
     );
   }
@@ -1759,6 +2255,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     elevation: 20,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 10,
+    width: 300,
+    height: 'auto',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 15,
   },
   BackButtonContainer: {
     flex: 0.1,
@@ -1781,6 +2299,7 @@ const styles = StyleSheet.create({
     margin: 5,
     height: 30,
     width: 30,
+    borderRadius:5
   },
   TitleStyle: {
     fontWeight: 'bold',

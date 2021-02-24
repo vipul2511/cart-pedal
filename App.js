@@ -84,7 +84,9 @@ const messaging = firebase.messaging();
 
 messaging.hasPermission()
   .then((enabled) => {
+    console.log('enabled',enabled);
       if (enabled) {
+        
           messaging.getToken()
               .then(token => { 
                 console.log("fcm Token",token)  
@@ -106,7 +108,7 @@ messaging.hasPermission()
   firebase.notifications().onNotification((notification) => {
      console.log('uper notification',notification);
     const { title, body } = notification;
-    // alert(notification)
+    alert(notification)
     
   });
 

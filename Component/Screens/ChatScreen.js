@@ -330,7 +330,8 @@ class ChatScreen extends Component {
                             useravatar: v.avatar,
                             userabout:v.about,
                             userphone:v.mobile,
-                            groupId:v.lastmsg.group_id,
+                            msg_type:v.msg_type,
+                            groupId:v.id,
                             groupexit:v.lastmsg.group_id!==0?v.exit:''
                           });
                         }}>
@@ -375,6 +376,16 @@ class ChatScreen extends Component {
                                 </Text>
                                 
                                 {!v.is_delete?v.lastmsg?.txt_type === 'text' && (
+                                  <Text style={styles.PersonNameStyle1}>
+                                    {v.lastmsg?.body}
+                                  </Text>
+                                ):null}
+                                  {!v.is_delete?v.lastmsg?.txt_type === 'ask_status' && (
+                                  <Text style={styles.PersonNameStyle1}>
+                                    {v.lastmsg?.body}
+                                  </Text>
+                                ):null}
+                                {!v.is_delete?v.lastmsg?.txt_type === 'accept' && (
                                   <Text style={styles.PersonNameStyle1}>
                                     {v.lastmsg?.body}
                                   </Text>

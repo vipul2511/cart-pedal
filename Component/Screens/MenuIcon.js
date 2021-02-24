@@ -51,6 +51,7 @@ class MenuIcon extends Component {
           <MenuItem onPress={this.option1Click}>Block</MenuItem>
           <MenuItem onPress={this.option2Click}>Share Link</MenuItem>
           <MenuItem onPress={this.option3Click}>Forward Link</MenuItem>
+          <MenuItem onPress={this.option4Click}>Report Post</MenuItem>
         </Menu>
       </View>
     );

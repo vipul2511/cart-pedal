@@ -254,7 +254,7 @@ UserProfileCall() {
       if (responseData.code == '200') {
       //  Toast.show(responseData.message);
       if(responseData.data[0].products!==undefined&&responseData.data[0].products.length>0){
-        console.log('if executed');
+        console.log('if executed',responseData.data[0].products);
         this.setState({ProfileData:responseData.data[0].products});
         this.setState({wholeData:responseData.data[0]});
     }else{
@@ -435,7 +435,7 @@ this.props.navigation.navigate('ForwardLinkScreen', {
                 onPress={() => {
                   this.props.navigation.navigate('ProductDetailScreen',{whole_data:item,seller_id:this.state.wholeData.id,imageURL:item.image,name:this.props.navigation.state.params.name})
                 }}>
-                <Image source={{uri:item.image[0].image}} style={styles.image} />
+                <Image source={item.image[0]?{uri:item.image[0].image}:this.state.pickedImage} style={styles.image} />
                 {item.image[1]?( <View style={styles.MultipleOptionContainer}>
                   <Image
                     source={require('../images/multipleImageIcon.png')}

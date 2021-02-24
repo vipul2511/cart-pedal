@@ -457,7 +457,7 @@ forwardlink =async(userid)=>{
               console.log('order recevied',JSON.stringify(item));
               return(
                 <View>
-                {item.products[0]?(  <TouchableOpacity style={styles.itemBox} onPress={()=>{this.props.navigation.navigate('OrderRecievedViewScreen',{ id: item.id, name: item.name })}}>
+                {item.products[0]?(  <TouchableOpacity style={styles.itemBox} onPress={()=>{this.props.navigation.navigate('OrderRecievedViewScreen',{ id: item.id, name: item.name,wholeData:item })}}>
                 <View style={styles.box}>
                   <View style={styles.ProfileImageContainer}>
                     <TouchableOpacity>
@@ -480,7 +480,7 @@ forwardlink =async(userid)=>{
                   <View style={styles.ListMenuContainer}>
                     <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
             console.log('id of user',item.id);
-            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,userabout:item.about,useravatar:item.avatar, groupexit:false,groupId:0})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,userabout:item.about,useravatar:item.avatar, groupexit:false,groupId:0,msg_type:"0"})
                       }}>
                         <Image
                           source={require('../images/message_icon.png')}
@@ -491,7 +491,7 @@ forwardlink =async(userid)=>{
                 source={item.favourite==1?this.state.redIcon:this.state.whiteIcon}
                 style={[styles.heartButtonStyle,{width:item.favourite==1?resp(11):resp(18),height:item.favourite==1?resp(9):resp(18),marginTop:item.favourite==1?resp(4):resp(0)}]}></Image>
             </TouchableOpacity>
-                    <TouchableOpacity style={styles.ViewButtonContainer} onPress={()=>{this.props.navigation.navigate('OrderRecievedViewScreen',{ id: item.id, name: item.name })}}> 
+                    <TouchableOpacity style={styles.ViewButtonContainer} onPress={()=>{this.props.navigation.navigate('OrderRecievedViewScreen',{ id: item.id, name: item.name,wholeData:item })}}> 
                         <Text style={styles.viewButtonStyle}>View All</Text>
                     </TouchableOpacity>
                     <CustomMenuIcon

@@ -720,6 +720,7 @@ export default class GroupProfile extends React.Component {
                       useravatar: this.state.groupname.image,
                       userabout:this.state.groupname.description,
                       userphone:this.state.groupname.mobile,
+                      msg_type:"0",
                       // groupId:v.lastmsg.group_id
                     }); 
                     }}>

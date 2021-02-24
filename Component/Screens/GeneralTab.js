@@ -312,6 +312,49 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
           alert(error.message);
         }
       };
+      blockuser=(block_id)=>{
+        this.showLoading();
+        let id=this.state.userNo;
+        let formData = new FormData();
+          
+        formData.append('user_id', id);
+        formData.append('block_id',block_id);
+        formData.append('type', 0);
+        console.log('form data==' + JSON.stringify(formData));
+    
+      // var CartList = this.state.baseUrl + 'api-product/cart-list'
+        var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+        console.log('Add product Url:' + fav)
+        fetch(fav, {
+          method: 'Post',
+          headers: new Headers({
+            'Content-Type': 'multipart/form-data',
+            device_id: '1111',
+            device_token:this.state.fcmToken,
+            device_type: 'android',
+            // Authorization: 'Bearer' + this.state.access_token,  
+            Authorization:JSON.parse(this.state.userAccessToken), 
+          }),
+          body: formData,
+        })
+          .then(response => response.json())
+          .then(responseData => {
+            if (responseData.code == '200') {
+              alert('User is blocked successfully');
+              this.ContactListall();
+              this.hideLoading();
+            } else {
+              //  this.setState({NoData:true});
+               this.hideLoading();
+            }
+            console.log('User user ID==', JSON.stringify(responseData))
+          })
+          .catch(error => {
+            this.hideLoading();
+            console.error(error)
+          })
+          .done();
+      }
     link =async()=>{
      const link= new firebase.links.DynamicLink('https://play.google.com/store/apps/details?id=in.cartpedal', 'cartpedal.page.link')
       .android.setPackageName('com.cart.android')
@@ -350,6 +393,49 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
       navigateToSettings = () => {
         const navigateAction = NavigationActions.navigate({ routeName: 'OpenForPublicDetail' });
         this.props.navigation.dispatch(navigateAction);
+      }
+      SendReportIssue() {
+        console.log('working send report')
+        let formData = new FormData()
+        formData.append('user_id', this.state.userNo)
+        formData.append('reason','Report post')
+        formData.append('message','Something went wrong with this post')
+        console.log('form data==' + JSON.stringify(formData))
+       // var otpUrl= 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/api-user/send-otp'
+        
+        var otpUrl ='http://www.cartpedal.com/frontend/web/api-user/report-problem'
+        console.log('url:' + otpUrl)
+        fetch(otpUrl, {
+          method: 'Post',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            device_id: '1234',
+            device_token:this.state.fcmToken,
+            device_type: 'android',
+            Authorization: JSON.parse(this.state.userAccessToken),
+          },
+          body: formData,
+        })
+          .then(response => response.json())
+          .then(responseData => {
+      
+            if (responseData.code == '200') {
+            //   this.props.navigation.navigate('LoginScreen')
+            alert(responseData.data)
+                 console.log(responseData);
+            } 
+            else {
+                alert(responseData.message);
+              console.log(responseData)
+            }
+            
+           
+          })
+          .catch(error => {
+            console.error(error)
+          })
+      
+          .done()
       }
 
   render () {
@@ -435,10 +521,11 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
               marginTop:3
             }}
             textStyle={{
+              
               color: 'white',
             }}
             option1Click={() => {
-              Toast.show('CLicked Block Link', Toast.LONG)
+              this.blockuser(item.id) 
             }}
             option2Click={() => {
               this.link()
@@ -448,6 +535,9 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
               this.forwardlink()
               // Toast.show('CLicked Forward Link', Toast.LONG)
             }}
+            option4Click={() => {
+              this.SendReportIssue()
+            }}
           />
         </View>
       </View>
@@ -455,7 +545,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
         <View style={styles.columnView}>
           <View style={styles.ImageContainer} >
             <Image
-              source={{uri:item.products[0].image}}
+              source={item.products[0].image?{uri:item.products[0].image}:this.state.pickedImage}
               style={styles.ImageContainer}></Image>
             <Text style={styles.itemNameStyle}>{item.products[0].name}</Text>
             <Text style={styles.itemPriceStyle}>
@@ -465,7 +555,7 @@ AsyncStorage.getItem('@fcmtoken').then((token) => {
           </View> 
          {item.products[1]?(<View style={styles.ImageContainer} >
             <Image
-              source={{uri:item.products[1].image}}
+             source={item.products[1].image?{uri:item.products[1].image}:this.state.pickedImage}
               style={styles.ImageContainer}></Image>
             <Text style={styles.itemNameStyle}>{item.products[1].name}</Text>
             <Text style={styles.itemPriceStyle}>

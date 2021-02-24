@@ -141,7 +141,7 @@ export default class ProductMasterImage extends React.Component {
     console.log('item',item);
     return (
       <TouchableOpacity key={index} activeOpacity={1} onLongPress={() => this.onImageSelect(index)} style={[styles.imageListContainView, index == MAX_IMAGE_SIZE - 1 && { marginEnd: 10 }]}>
-        <Image style={styles.imageView} source={{ uri: item.path}} />
+        <Image style={styles.imageView} source={{ uri: item}} />
         <TouchableOpacity
           onPress={() => { this.removeImageFromList(index) }}
           style={[styles.imageOptionIcon, { position: 'absolute', top: 5, start: 5 }]}
@@ -188,7 +188,7 @@ export default class ProductMasterImage extends React.Component {
     return (
       <View key={index} style={styles.imageSliderBig}>
         <View style={{ flex: 1 }}>
-          <Image style={{ flex: 1 }} source={{ uri: this.state.imageList[this.state.selectedImageIndex][index].path}} />
+          <Image style={{ flex: 1 }} source={{ uri: this.state.imageList[this.state.selectedImageIndex][index]}} />
         </View>
       </View>
     )

@@ -120,6 +120,10 @@ class OrderRecievedViewScreen extends Component {
       console.log("Edit user id token=" +token);
       if (token) {
         this.setState({ fcmToken: token });
+        let arr=[];
+        arr.push(this.props.navigation.state.params.wholeData);
+        this.setState({OderPlaceProduct:arr});
+        console.log('order data',this.state.OderPlaceProduct)
       }
     });
     AsyncStorage.getItem('@access_token').then((accessToken) => {
@@ -133,7 +137,7 @@ class OrderRecievedViewScreen extends Component {
       if (userId) {
           this.setState({ userNo: userId });
           console.log(" id from login  user id ====" + userId);
-          this.CartListCall();
+          // this.CartListCall();
           this.UserProfileCall();
           setTimeout(() => {
             this.hideLoading()
@@ -459,7 +463,7 @@ forwardlink =async(userid)=>{
               <View style={styles.ListMenuContainer}>
                 <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
                             // console.log('chat screen',this.state.wholeData.id);
-                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id,userabout:this.state.ProfileData.about, username:this.state.ProfileData.name,useravatar:this.state.avatar, groupexit:false,groupId:0})
+                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id,userabout:this.state.ProfileData.about, username:this.state.ProfileData.name,useravatar:this.state.avatar, groupexit:false,groupId:0,msg_type:"0"})
                       }}>
                     <Image
                       source={require('../images/message_icon.png')}

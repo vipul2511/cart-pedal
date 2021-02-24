@@ -603,12 +603,13 @@ class ProductListScreen extends Component {
     console.log('items in tick ICon',JSON.stringify(items));
     let image=this.state.productmaster;
     let Innerimage=this.state.productDetailInner;
-    items.images.map((item)=>{
-      let obj={
-        path:item.file_url
-      }
-      image.push(obj);
-    });
+    image.push(items.images[0].file_url);
+    // items.images.map((item)=>{
+    //   let obj={
+    //     path:item.file_url
+    //   }
+    //   image.push(obj);
+    // });
     {items.images[1]?(items.images.map((item)=>{
       let obj={
         path:item.file_url

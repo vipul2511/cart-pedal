@@ -58,21 +58,22 @@ class ForwardLinkScreen extends Component {
       userAccessToken,
       msgids,
     } = this.props.navigation.state.params;
-    var raw = JSON.stringify({
-        user_id: userId,
-        toid: [{id:toid,type:0},{id:grpid,type:1}],
-        msg_type: 'text',
-        body:msgids,
-        // reply_id: '0',
-        // upload: [],
-      });
+    // var raw = JSON.stringify({
+    //     user_id: userId,
+    //     toids: [{id:toid,type:0},{id:grpid,type:1}],
+    //     msg_type: 'text',
+    //     body:msgids,
+    //     // reply_id: '0',
+    //     // upload: [],
+    //   });
+    console.log('toids',[{id:toid,type:"0"},{id:grpid,type:"1"}])
     this.showLoading();
     const data = new FormData();
     data.append('user_id', userId);
     data.append('body', msgids);
-    data.append('toids',toid);
+    data.append('toids',[{id:toid,type:"0"},{id:grpid,type:"1"}]);
     data.append('msg_type','link')
-    console.log('form data',raw);
+    console.log('form data',data);
     var EditProfileUrl =
       'http://www.cartpedal.com/frontend/web/api-message/share-link';
     console.log('Add product Url:' + EditProfileUrl);

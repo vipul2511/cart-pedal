@@ -18,6 +18,7 @@ import FileViewer from 'react-native-file-viewer';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Swipeable from 'react-native-gesture-handler/Swipeable'
 import ImageLoad from './ImageLoad';
+import ImageModal from 'react-native-image-modal';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
@@ -42,8 +43,9 @@ export const MessageComponent = ({
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(initialize(message.sending));
   const [audio, setAudio] = useState({playing: false, duration: 0, current: 0});
+  const [pause,setpause]=useState(false);
   const [audio1, setAudio1] = useState({playing: false, duration: 0, current: 0});
-
+  const [playerRecording, setPlayerRecording] = useState(false)
   const [opacity, setOpacity] = useState(0);
 
   const onLoadStart = () => {
@@ -96,6 +98,7 @@ export const MessageComponent = ({
           current: p.current,
           playing: false,
         }));
+        setPlayerRecording(0);
         await audioRecorderPlayer.stopPlayer();
         await audioRecorderPlayer.removePlayBackListener();
       }
@@ -137,7 +140,27 @@ export const MessageComponent = ({
       duration: p.duration,
       playing: false,
     }));
+    setpause(true);
   };
+ const onPlay = async (uri,playerId) => {
+    // No player are reading or it is the same player
+    if (pause && playerRecording==playerId) 
+      return onStartPlay1(uri);
+
+    // Another player is reading - stop it before starting the new one
+    audioRecorderPlayer.removePlayBackListener();
+    console.log('working');
+    await audioRecorderPlayer.resumePlayer();
+    await audioRecorderPlayer.stopPlayer();
+    setAudio1((p) => ({
+      current: 0,
+      duration:0,
+      playing: false,
+    }));
+    // Start the new player
+    onStartPlay1(uri);
+  };
+
   const downloadAndOpenDocument = async (uri) => {
     const parts = uri.split('/');
     const fileName = parts[parts.length - 1];
@@ -183,7 +206,7 @@ export const MessageComponent = ({
   //    let date=moment().format("DD-MM-YYYY") 
   //    {date==message.date?}
   //  }
-  if (msg_type === 'text') {
+  if (msg_type === 'accept') {
     if (message.tmsg !== '') {
       content = (
         <View
@@ -200,13 +223,14 @@ export const MessageComponent = ({
               width: '70%',
             }}>
               {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5,}} >
-              <Text style={{color:'#1EA81D'}}>{message.tname}</Text></View>):null}
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
                <View style={{borderWidth:message.reply_msg?5:0,borderColor:'#fff'}}>
-               {message.reply_msg?<Text
+               {message.reply_msg?
+               <Text
               style={{
                 margin: 10,
                 color: 'red',
-                fontSize: 12,
+                fontSize: 15,
               }}>
               {message.reply_msg.rmsg}
             </Text>:<Text
@@ -218,7 +242,7 @@ export const MessageComponent = ({
               {message.tmsg}
             </Text>}
              {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
-         <Text style={{marginLeft:5,marginTop:8,fontSize:16,marginRight:5,color:'black'}}> {message.tmsg}</Text>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.tmsg}</Text>
           </View>:null}
           </View>
           </View>
@@ -261,19 +285,446 @@ export const MessageComponent = ({
               style={{
                 margin: 10,
                 color: '#fff',
-                fontSize: 12,
+                fontSize: 15,
               }}>
               {message.reply_msg.rmsg}
             </Text>:<Text
               style={{
                 margin: 10,
                 color: '#fff',
-                fontSize: 12,
+                fontSize: 15,
               }}>
               {message.fmsg}
             </Text>}
             {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
-         <Text style={{marginLeft:5,marginTop:8,fontSize:16,marginRight:5,color:'black'}}> {message.fmsg}</Text>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.fmsg}</Text>
+          </View>:null}
+          </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 5,
+            }}>
+            <Text
+              style={{
+                color: '#524D4D',
+                fontSize: 10,
+                paddingLeft: 8,
+              }}>
+                {message.time}
+              {/* {moment(message.time).format('hh:mm')} */}
+            </Text>
+            {sending ? (
+              <Icon
+                type="MaterialCommunityIcons"
+                name="clock-time-nine"
+                style={{
+                  fontSize: 18,
+                  color: 'red',
+                }}
+              />
+            ) : (
+              <Icon
+                type="Ionicons"
+                name="checkmark-done-sharp"
+                style={{
+                  fontSize: 16,
+                  color: message.is_read === '1' ? '#34B7F1' : 'grey',
+                }}
+              />
+            )}
+          </View>
+        </View>
+      );
+    }
+  }
+  if (msg_type === 'ask_status') {
+    if (message.tmsg !== '') {
+      content = (
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            marginVertical: 10,
+          }}>
+           
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+              {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5,}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
+               <View style={{borderWidth:message.reply_msg?5:0,borderColor:'#fff'}}>
+               {message.reply_msg!=""?<Text
+              style={{
+                margin: 10,
+                color: 'red',
+                fontSize: 15,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:<Text
+              style={{
+                margin: 10,
+                color: 'black',
+                fontSize: 12,
+              }}>
+              {message.tmsg}
+            </Text>}
+             {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.tmsg}</Text>
+          </View>:null}
+          </View>
+          </View>
+      
+          <View style={{flexDirection:'row',}}>
+          <Text
+            style={{
+              color: '#524D4D',
+              fontSize: 10,
+              marginRight: 10,
+              marginTop: 5,
+              alignSelf: 'flex-start',
+            }}>
+           {message.time}
+          </Text>
+          {/* <TouchableOpacity >
+          <Text style={{
+              color: '#1A73E8',
+              fontSize: 12,
+              marginLeft: '55%',
+              alignSelf: 'flex-end',
+            }}>Reply</Text>
+            </TouchableOpacity> */}
+            </View>
+        </View>
+      );
+    }
+    if (message.fmsg !== '') {
+      content = (
+        <View style={{alignSelf: 'flex-end', marginVertical: 10}}>
+          <View
+            style={{
+              backgroundColor: 'red',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+                <View style={{borderWidth:message.reply_msg?5:0,borderColor:'#fff'}}>
+                {message.reply_msg?<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 15,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 15,
+              }}>
+              {message.fmsg}
+            </Text>}
+            {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.fmsg}</Text>
+          </View>:null}
+          </View>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 5,
+            }}>
+            <Text
+              style={{
+                color: '#524D4D',
+                fontSize: 10,
+                paddingLeft: 8,
+              }}>
+                {message.time}
+              {/* {moment(message.time).format('hh:mm')} */}
+            </Text>
+            {sending ? (
+              <Icon
+                type="MaterialCommunityIcons"
+                name="clock-time-nine"
+                style={{
+                  fontSize: 18,
+                  color: 'red',
+                }}
+              />
+            ) : (
+              <Icon
+                type="Ionicons"
+                name="checkmark-done-sharp"
+                style={{
+                  fontSize: 16,
+                  color: message.is_read === '1' ? '#34B7F1' : 'grey',
+                }}
+              />
+            )}
+          </View>
+        </View>
+      );
+    }
+  }
+  if (msg_type === 'text') {
+    if (message.tmsg !== '') {
+      content = (
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            marginVertical: 10,
+          }}>
+           
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+              {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5,}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
+               <View style={{borderWidth:message.reply_msg && message.reply_msg.length>0?5:0,borderColor:'#fff'}}>
+               {message.reply_msg!=""?
+               message.reply_msg=="text"? <Text
+              style={{
+                margin: 10,
+                color: 'red',
+                fontSize: 15,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:message.reply_msg.msg_type=="contact"?
+              <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+              <Icon
+                     name="user"
+                     type="Feather"
+                     style={{
+                       color: 'red',
+                       fontSize: 18,
+                       alignSelf: 'center',
+                     }}
+                   /> 
+                   
+              <Text style={{marginBottom:5,color:'red',marginLeft:5}}>Contact</Text>
+               
+               </View>:message.reply_msg.msg_type=="location"?
+              <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+              <Icon
+                     name="location"
+                     type="Entypo"
+                     style={{
+                       color: 'red',
+                       fontSize: 18,
+                       alignSelf: 'center',
+                     }}
+                   /> 
+                   
+              <Text style={{marginBottom:5,color:'red',marginLeft:5}}>Location</Text>
+               
+               </View>:message.reply_msg.rimage?
+            message.reply_msg.msg_type=="image"?
+            <Image source={{uri:message.reply_msg.rimage.attach}} style={{width:100,height:80}} />:
+            message.reply_msg.msg_type=="audio"?
+            <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+            <Icon
+                   name="mic"
+                   type="Feather"
+                   style={{
+                     color: 'red',
+                     fontSize: 18,
+                     alignSelf: 'center',
+                   }}
+                 /> 
+            <Text style={{marginBottom:5,color:'red'}}>Voice message</Text>
+             
+             </View>: message.reply_msg.msg_type=="video"?
+            <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+            <Icon
+                   name="video"
+                   type="Feather"
+                   style={{
+                     color: 'red',
+                     fontSize: 18,
+                     alignSelf: 'center',
+                   }}
+                 /> 
+            <Text style={{marginBottom:5,color:'red'}}>Voice message</Text>
+             
+             </View>:
+             message.reply_msg.msg_type=="file"?
+             <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+             <Icon
+                    name="file"
+                    type="Feather"
+                    style={{
+                      color: 'red',
+                      fontSize: 18,
+                      alignSelf: 'center',
+                    }}
+                  /> 
+             <Text style={{marginBottom:5,color:'red',marginLeft:5}}>Document</Text>
+              
+              </View>:null:
+             null:<Text
+              style={{
+                margin: 10,
+                color: 'black',
+                fontSize: 12,
+              }}>
+              {message.tmsg}
+            </Text>}
+             {message.reply_msg ?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.tmsg}</Text>
+          </View>:null}
+          </View>
+          </View>
+      
+          <View style={{flexDirection:'row',}}>
+          <Text
+            style={{
+              color: '#524D4D',
+              fontSize: 10,
+              marginRight: 10,
+              marginTop: 5,
+              alignSelf: 'flex-start',
+            }}>
+           {message.time}
+          </Text>
+          {/* <TouchableOpacity >
+          <Text style={{
+              color: '#1A73E8',
+              fontSize: 12,
+              marginLeft: '55%',
+              alignSelf: 'flex-end',
+            }}>Reply</Text>
+            </TouchableOpacity> */}
+            </View>
+        </View>
+      );
+    }
+    if (message.fmsg !== '') {
+      content = (
+        <View style={{alignSelf: 'flex-end', marginVertical: 10}}>
+          <View
+            style={{
+              backgroundColor: 'red',
+              borderRadius: 8,
+              elevation: 5,
+              width: '70%',
+            }}>
+                <View style={{borderWidth:message.reply_msg && message.reply_msg.length>0?5:0,borderColor:'#fff'}}>
+                {message.reply_msg?
+                message.reply_msg.msg_type=="text"?<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 15,
+              }}>
+              {message.reply_msg.rmsg}
+            </Text>:message.reply_msg.msg_type=="contact"?
+              <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+              <Icon
+                     name="user"
+                     type="Feather"
+                     style={{
+                       color: '#fff',
+                       fontSize: 18,
+                       alignSelf: 'center',
+                     }}
+                   /> 
+                   
+              <Text style={{marginBottom:5,color:'#fff',marginLeft:5}}>Contact</Text>
+               
+               </View>:message.reply_msg.msg_type=="location"?
+              <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+              <Icon
+                     name="location"
+                     type="Entypo"
+                     style={{
+                       color: '#fff',
+                       fontSize: 18,
+                       alignSelf: 'center',
+                     }}
+                   /> 
+                   
+              <Text style={{marginBottom:5,color:'#fff',marginLeft:5}}>Location</Text>
+               
+               </View>:message.reply_msg.rimage?
+            message.reply_msg.msg_type=="image"?
+            <Image source={{uri:message.reply_msg.rimage.attach}} style={{width:100,height:80}} />:
+            message.reply_msg.msg_type=="audio"?
+            <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+            <Icon
+                   name="mic"
+                   type="Feather"
+                   style={{
+                     color: '#fff',
+                     fontSize: 18,
+                     alignSelf: 'center',
+                   }}
+                 /> 
+            <Text style={{marginBottom:5,color:'#fff'}}>Voice message</Text>
+             
+             </View>: message.reply_msg.msg_type=="video"?
+            <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+            <Icon
+                   name="video"
+                   type="Feather"
+                   style={{
+                     color: '#fff',
+                     fontSize: 18,
+                     alignSelf: 'center',
+                     marginLeft:5
+                   }}
+                 /> 
+            <Text style={{marginBottom:5,color:'#fff',marginLeft:8}}>Video</Text>
+             
+             </View>: message.reply_msg.msg_type=="file"?
+             <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+             <Icon
+                    name="file"
+                    type="Feather"
+                    style={{
+                      color: '#fff',
+                      fontSize: 18,
+                      alignSelf: 'center',
+                    }}
+                  /> 
+             <Text style={{marginBottom:5,color:'#fff',marginLeft:5}}>Document</Text>
+              
+              </View>:message.reply_msg.msg_type=="location"?
+             <View style={{marginLeft:10,marginTop:5,marginRight:10,flexDirection:'row'}}>
+             <Icon
+                    name="location"
+                    type="Feather"
+                    style={{
+                      color: '#fff',
+                      fontSize: 18,
+                      alignSelf: 'center',
+                    }}
+                  /> 
+             <Text style={{marginBottom:5,color:'#fff',marginLeft:5}}>Location</Text>
+              
+              </View>: null
+            :null:<Text
+              style={{
+                margin: 10,
+                color: '#fff',
+                fontSize: 15,
+              }}>
+              {message.fmsg}
+            </Text>}
+            {message.reply_msg?<View style={{backgroundColor:'#fff'}}>
+         <Text style={{marginLeft:5,marginTop:8,fontSize:15,marginRight:5,color:'black'}}> {message.fmsg}</Text>
           </View>:null}
           </View>
           </View>
@@ -601,20 +1052,20 @@ export const MessageComponent = ({
               width: '70%',
             }}
           />
-          <View style={{borderWidth:5,borderColor:'#fff'}}>
-          <Lightbox>
-            <ImageLoad
+          <View style={{borderWidth:5, borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:message.tattach.caption!==""?8:0}}>
+            <ImageModal
               style={{
                 height: 200,
+                borderRadius: 8,
                 width: 200,
                 alignSelf: 'center',
               }}
+              imageBackgroundColor="transparent"
               loadingStyle={{size: 'large', color: 'gray'}}
               source={{uri: message.tattach.attach}}
             />
-          </Lightbox>
           </View>
-          {message.tattach.caption!==""?<View style={{backgroundColor:'#fff'}}>
+          {message.tattach.caption!==""?<View style={{backgroundColor:'#fff',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
          <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black',marginBottom:5}}>{message.tattach.caption}</Text>
           </View>:null}
           <Text
@@ -640,24 +1091,25 @@ export const MessageComponent = ({
               width: '70%',
             }}
           />
-          <View style={{borderWidth:5,borderColor:'#fff'}}>
-          <Lightbox>
-            <ImageLoad
+          <View style={{borderWidth:5, borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:message.fattach.caption!==""?8:0}}>
+            <ImageModal
               loading={sending}
               style={{
                 height: 200,
+                borderRadius: 8,
                 width: 200,
                 alignSelf: 'center',
                 // borderRadius:2,
                 // borderColor:'white'
               }}
+              imageBackgroundColor="transparent"
               loadingStyle={{size: 'large', color: 'gray'}}
               source={{uri: message.fattach.attach}}
             />
            
-          </Lightbox>
+     
           </View>
-          {message.fattach.caption!==""?<View style={{backgroundColor:'#fff'}}>
+          {message.fattach.caption!==""?<View style={{backgroundColor:'#fff',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
          <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black',marginBottom:5}}>{message.fattach.caption}</Text>
           </View>:null}
           <View
@@ -853,13 +1305,14 @@ export const MessageComponent = ({
             }}>
             <Icon
               onPress={() => {
-                if (audio.playing) {
+                if (audio1.playing) {
                   onPausePlay1();
                 } else {
-                  onStartPlay1(message.tattach.attach);
+                  setPlayerRecording(message.id);
+                  onPlay(message.tattach.attach,message.id);
                 }
               }}
-              name={audio.playing ? 'pause' : 'play'}
+              name={audio1.playing ? 'pause' : 'play'}
               style={{color: 'grey'}}
             />
             <View
@@ -869,12 +1322,15 @@ export const MessageComponent = ({
                 alignSelf: 'flex-start',
               }}>
               <Slider
-                disabled
+                // disabled
                 value={
-                  audio1.duration === 0 ? 0 : audio1.current / audio1.duration
+                         playerRecording==message.id ?audio1.duration === 0 ? 0 : audio1.current / audio1.duration:0
                 }
                 thumbStyle={{width: 10, height: 10}}
               />
+               <Text style={{fontSize: 12, color: 'black', marginTop: -12}}>
+                { playerRecording==message.id ?audioRecorderPlayer.mmssss(audio1.current).slice(0, -3):'00:00'}
+              </Text>
             </View>
           </View>
           <Text
@@ -908,13 +1364,15 @@ export const MessageComponent = ({
             ) : (
               <Icon
                 onPress={() => {
-                  if (audio.playing) {
-                    onPausePlay();
+                  if (audio1.playing) {
+                    onPausePlay1();
                   } else {
-                    onStartPlay(message.fattach.attach);
+                    setPlayerRecording(message.id);
+                  onPlay(message.fattach.attach,message.id);
+                    // onStartPlay(message.fattach.attach);
                   }
                 }}
-                name={audio.playing ? 'pause' : 'play'}
+                name={audio1.playing ? 'pause' : 'play'}
                 style={{color: 'white'}}
               />
             )}
@@ -928,14 +1386,14 @@ export const MessageComponent = ({
               <Slider
                 disabled
                 value={
-                  audio.duration === 0 ? 0 : audio.current / audio.duration
+                  playerRecording==message.id ?audio1.duration === 0 ? 0 : audio1.current / audio1.duration:0
                 }
                 minimumTrackTintColor="white"
                 thumbStyle={{width: 10, height: 10, backgroundColor: 'white'}}
                 onValueChange={(value) => this.setState({value})}
               />
               <Text style={{fontSize: 12, color: 'white', marginTop: -12}}>
-                {audioRecorderPlayer.mmssss(audio.current).slice(0, -3)}
+                { playerRecording==message.id ?audioRecorderPlayer.mmssss(audio1.current).slice(0, -3):'00:00'}
               </Text>
             </View>
           </View>

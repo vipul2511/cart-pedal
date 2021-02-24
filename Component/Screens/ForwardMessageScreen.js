@@ -173,7 +173,7 @@ class ForwardMessageScreen extends Component {
           color="#F01738"
           textStyle={styles.spinnerTextStyle}
         />
-        <TouchableOpacity onPress={()=>{console.log('this group',this.state.groupID)}}><Text>hello</Text></TouchableOpacity>
+        {/* <TouchableOpacity onPress={()=>{console.log('this group',this.state.groupID)}}><Text>hello</Text></TouchableOpacity> */}
         {this.state.toids.length !== 0 && (
           <Fab
             onPress={() => {

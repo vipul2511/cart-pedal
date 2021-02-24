@@ -6,6 +6,7 @@ const configure = () => {
 
    onRegister: function(token) {
      //process token
+     console.log('the service token');
    },
 
    onNotification: function(notification) {

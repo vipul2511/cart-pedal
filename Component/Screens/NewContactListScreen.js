@@ -191,7 +191,8 @@ class NewContactsListScreen extends Component {
                         username: v.name,
                         useravatar: v.avatar,
                         groupexit:false,
-                        groupId:0
+                        groupId:0,
+                        msg_type:"0"
                       });
                     }}>
                     {/* <View

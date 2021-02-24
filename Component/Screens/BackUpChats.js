@@ -127,7 +127,7 @@ class BackUpChats extends Component {
         <View style={styles.MainContentBox}>
           <ScrollView>
        
-            <TouchableOpacity style={styles.Profile2Container}>
+            {/* <TouchableOpacity style={styles.Profile2Container}>
               <View style={styles.Profile2ImageContainer}>
                 <TouchableOpacity
                 >
@@ -145,7 +145,7 @@ class BackUpChats extends Component {
                 </Text>
               </View>
             
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity style={styles.Profile2Container} onPress={this.clearMessages}>
               <View style={styles.Profile2ImageContainer}>
                 <TouchableOpacity

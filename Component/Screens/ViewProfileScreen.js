@@ -18,8 +18,16 @@ class ViewProfileScreen extends Component{
         this.state = {
             images: 
               this.props.navigation.state.params.images,
+              height:500
         }
         console.log(this.props.navigation.state.params.images);
+    }
+    componentDidMount(){
+      if(this.props.navigation.state.params){
+        if(this.props.navigation.state.params.profileScren=='1'){
+          this.setState({height:200})
+        }
+      }
     }
     render () {
         return (
@@ -36,7 +44,7 @@ class ViewProfileScreen extends Component{
             <View style={styles.ImageContainer}>
              <SliderBox
                 images={this.state.images}
-                style={styles.sliderImageStyle}></SliderBox>
+                style={[styles.sliderImageStyle,{width:'99%',height: resp(this.state.height),}]}></SliderBox>
                 </View>
           </SafeAreaView>
         )
@@ -73,8 +81,7 @@ const styles=StyleSheet.create({
           alignContent:'center',
           alignItems:'center',
           alignSelf:'center',
-          width:'99%',
-          height: resp(500),
+       
       },
 })
 export default ViewProfileScreen;

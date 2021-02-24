@@ -26,6 +26,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import AsyncStorage from '@react-native-community/async-storage'
 import { Button, Container, Content, Footer, FooterTab, Icon, Item, } from 'native-base';
 import { flatMap } from 'lodash'
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 const audioRecorderPlayer = new AudioRecorderPlayer();
 import {
   locationPermission,
@@ -47,13 +48,16 @@ class StoryViewScreen extends Component{
           message:'',
           height:40,
           open: false,
+          position:'',
           storyid:'',
           ownUserID:'',
           imageView:'',
+          storyLength:'',
+          leftcount:1,
           defaultavatar:require('../images/default_user.png'),
             images:'',
             visibleReply:true,
-            nameStory:this.props.navigation.state.params.name,
+            nameStory:'',
               // require('../images/story_images_2.png'),
               // require('../images/story_images_3.png'),
               // require('../images/story_images_4.png')
@@ -66,6 +70,12 @@ class StoryViewScreen extends Component{
       AsyncStorage.getItem('@fcmtoken').then(token => {
         if (token) {
           this.setState({fcmtoken: JSON.parse(token)})
+         let storyArr= this.props.navigation.state.params.storyArray;
+         let position=this.props.navigation.state.params.position
+         this.setState({position:position})
+         this.setState({storyLength:storyArr.length})
+         console.log('position',position,storyArr.length);
+         console.log('story Arr',JSON.stringify(storyArr));
           console.log('device fcm token ====' + this.state.fcmtoken);
         }
       });
@@ -73,28 +83,10 @@ class StoryViewScreen extends Component{
         if (userId) {
           this.setState({userId: userId})
           console.log('Edit user id Dhasbord ====' + this.state.userId)
-         
+         this.storyData()
         }
       });
-  let item=this.props.navigation.state.params.images;
-  this.setState({avatar:item});
-  console.log('avatar',JSON.stringify(item));
-  let imageArr=[];
-  let storyID;
-  let time;
-  let storyImage=this.props.navigation.state.params.storyImages
-  storyID=storyImage[0].stid;
-  console.log('story Image',storyImage);
-  storyImage.map((item,index)=>{
-    imageArr.push(item.image)
-     time=item.time;
-  });
-  console.log('story ID',storyID);
-  this.setState({storyid:storyID})
-  this.setState({images:imageArr});
-  let timeID =moment(time*1000).fromNow();
-  this.setState({currentTime:timeID});
-  console.log(imageArr);
+     
   AsyncStorage.getItem('@access_token').then((accessToken) => {
     if (accessToken) {
       this.setState({ userAccessToken: accessToken });
@@ -102,6 +94,29 @@ class StoryViewScreen extends Component{
          this.viewStory();
     } 
   })
+    }
+    storyData=()=>{
+      let item=this.props.navigation.state.params.storyArray[this.state.position].avatar;
+      this.setState({avatar:item});
+      let name=this.props.navigation.state.params.storyArray[this.state.position].name;
+      this.setState({nameStory:name});
+      console.log('avatar',JSON.stringify(item));
+      let imageArr=[];
+      let storyID;
+      let time;
+      let storyImage=this.props.navigation.state.params.storyArray[this.state.position].stories;
+      storyID=storyImage[0].stid;
+      console.log('story Image',storyImage);
+      storyImage.map((item,index)=>{
+        imageArr.push(item.image)
+         time=item.time;
+      });
+      console.log('story ID',storyID);
+      this.setState({storyid:storyID})
+      this.setState({images:imageArr});
+      let timeID =moment(time*1000).fromNow();
+      this.setState({currentTime:timeID});
+      console.log(imageArr);
     }
     onChangeText = (text) => {
       this.setState({message: text});
@@ -111,12 +126,14 @@ class StoryViewScreen extends Component{
       this.setState({message: '', height: 40});
       var raw = JSON.stringify({
         user_id: this.state.userId,
+        type:"0",
         toid: this.props.navigation.state.params.userid,
         msg_type: 'text',
         body: this.state.message,
         reply_id: '0',
         upload: [],
       });
+      console.log('raw', raw);
       fetch('http://www.cartpedal.com/frontend/web/api-message/sent-message', {
         method: 'POST',
         headers: {
@@ -654,9 +671,75 @@ class StoryViewScreen extends Component{
           })
           .done();
        }
+       onSwipeLeft(gestureState) {
+         console.log('swipe left',gestureState);
+         let leftcount=this.state.leftcount;
+         this.setState({leftcount:leftcount+1});
+         let itemVariable=this.props.navigation.state.params.storyArray[this.state.position].stories.length;
+         console.log('length',itemVariable);
+         console.log('left position',this.state.position,'story length',this.state.storyLength-1);
+         if(this.state.position!==this.state.storyLength-1&&itemVariable==leftcount){
+           console.log('working')
+        this.setState({position:this.state.position+1},()=>{
+          this.setState({leftcount:1})
+          this.storyData()
+        });
+      }
+      }
+     
+      onSwipeRight(gestureState) {
+        console.log('swipe right',gestureState);
+        let leftcount=this.state.leftcount;
+        this.setState({leftcount:leftcount-1});
+        let itemVariable=this.props.navigation.state.params.storyArray[this.state.position].stories.length;
+        console.log('length',itemVariable,'left count',leftcount);
+        console.log('right position',this.state.position,'story length',this.state.storyLength);
+        if(this.state.position!=0&&1==leftcount){
+        this.setState({position:this.state.position-1},()=>{
+          this.setState({leftcount:1})
+          this.storyData()
+        });
+      }
+      }
+      onSwipe(gestureName, gestureState) {
+        const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+        this.setState({gestureName: gestureName});
+        switch (gestureName) {
+          case SWIPE_UP:
+            this.setState({backgroundColor: 'red'});
+            break;
+          case SWIPE_DOWN:
+            this.setState({backgroundColor: 'green'});
+            break;
+          case SWIPE_LEFT:
+            this.setState({backgroundColor: 'blue'});
+            break;
+          case SWIPE_RIGHT:
+            this.setState({backgroundColor: 'yellow'});
+            break;
+        }
+      }
+      onSwipeUp(gestureState) {
+        this.props.navigation.goBack()
+       }
     render () {
+      const config = {
+        velocityThreshold: 0.3,
+        directionalOffsetThreshold: 80
+      };
         return (
           <SafeAreaView style={styles.container}>
+                <GestureRecognizer
+        onSwipe={(direction, state) => this.onSwipe(direction, state)}
+        onSwipeUp={(state) => this.onSwipeUp(state)}
+        onSwipeLeft={(state) => this.onSwipeLeft(state)}
+        onSwipeRight={(state) => this.onSwipeRight(state)}
+        config={config}
+        style={{
+          flex: 1,
+          // backgroundColor: this.state.backgroundColor
+        }}
+        >
            {this.state.imageshow?(<>
           {/* <TouchableOpacity style={styles.CloseButtonContainerStyles}
           onPress={() => {
@@ -689,12 +772,13 @@ class StoryViewScreen extends Component{
         <Text style={{marginTop:5,fontSize:12}}>{this.state.currentTime}</Text>
             </View>
             </View>
-           
+        
             <View style={styles.ImageContainer}>
              <SliderBox
                 images={this.state.images}
                 style={styles.sliderImageStyle}></SliderBox>
                 </View>
+                
                 {this.state.open && (
           <View
             style={{
@@ -1009,6 +1093,7 @@ class StoryViewScreen extends Component{
              </ScrollView>
           </View>
         )}
+        </GestureRecognizer>
           </SafeAreaView>
         )
       }

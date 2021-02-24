@@ -10,8 +10,10 @@ import AsyncStorage from '@react-native-community/async-storage'
 import resp from 'rn-responsive-font'
 import Spinner from 'react-native-loading-spinner-overlay'
 import Icon from 'react-native-vector-icons/Entypo';
+import Feather from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker';
 import ImageModal from 'react-native-image-modal';
+import {downloadFile, DocumentDirectoryPath} from 'react-native-fs';
 const screenWidth = Dimensions.get('screen').width;
 let width = Dimensions.get('window').width;
 let height = Dimensions.get('window').height;
@@ -35,6 +37,7 @@ export default class ChatProfile extends React.Component {
           userAccessToken:'',
           price:'',
           totalPrice:'',
+          mediaArr:[],
           product_id:'',
           seller_id:'',
           fcmToken:'',
@@ -283,6 +286,18 @@ export default class ChatProfile extends React.Component {
         //  this.props.navigation.navigate('DashBoardScreen')
       }
     };
+     downloadAndOpenDocument = async (uri) => {
+      const parts = uri.split('/');
+      const fileName = parts[parts.length - 1];
+      downloadFile({
+        fromUrl: uri,
+        toFile: `${DocumentDirectoryPath}/${fileName}`,
+      }).promise.then((res) => {
+        FileViewer.open(`${DocumentDirectoryPath}/${fileName}`, {
+          showOpenWithDialog: true,
+        });
+      });
+    };
     EditProfileCall= ()=> {
       this.showLoading()
       let formData = new FormData()
@@ -363,6 +378,9 @@ export default class ChatProfile extends React.Component {
         .then(response => response.json())
         .then(responseData => {
           if (responseData.code == '200 ') {
+            let arr=this.state.mediaArr;
+            arr.push(responseData.data)
+            this.setState({mediaArr:responseData.data});
             console.log(JSON.stringify(responseData));
             }
           else {
@@ -490,6 +508,9 @@ export default class ChatProfile extends React.Component {
         })
         .done()
     }
+    filemedia=()=>{
+     
+    }
   render() {
     return (
       <SafeAreaView style={styles.mainContainer}>
@@ -528,14 +549,42 @@ export default class ChatProfile extends React.Component {
                       </TouchableOpacity>
        </View>
        <View style={styles.Name}>
+       
        <View style={{flexDirection:'row'}}>
          <View style={{marginLeft:15,marginTop:5}}>
          <Text style={{fontSize:15,color:'#F01738'}}>Media,links,and docs</Text>
          </View>
-       </View>      
-         {/* <View style={{marginLeft:35,marginTop:15}}>
-           <Text style={{fontSize:17,color:'#4F4F4F'}}>{this.state.name}</Text>
-         </View> */}
+       </View>    
+       
+         <View style={{flexDirection:'row', height:'auto',width:Dimensions.get('window').width}}>
+         <ScrollView horizontal={true}> 
+         {this.state.mediaArr.map((item,index)=>{ 
+        console.log('item',item);
+    return (<View style={{flexDirection:'row'}}>   
+           {item.type=="image"?(<View style={{borderWidth:5,flexDirection:'row', borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:0}}>
+            <ImageModal
+              style={{
+                height: 45,
+                borderRadius: 8,
+                width: 45,
+                
+              }}
+              imageBackgroundColor="transparent"
+              source={{uri: item.attachment}}
+            />
+          </View>):item.type=="audio"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="headphones" color="#fff" size={18}     />
+            </View>:item.type=="video"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="video" color="#fff" size={18}     />
+            </View>:item.type=="file"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="file" color="#fff" size={18}     />
+            </View>:null}
+         
+        </View>)
+      })}
+ </ScrollView>
+         </View>
+        
                   </View>
        <View style={styles.Description}>
        <View style={{flexDirection:'row'}}>
@@ -650,7 +699,7 @@ const styles = StyleSheet.create({
   Name:{
   marginTop:75,
   backgroundColor:'#fff',
-  height:75,
+  height:'auto',
   width:Dimensions.get('window').width
   
   },

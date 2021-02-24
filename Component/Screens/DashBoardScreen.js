@@ -234,6 +234,7 @@ forwardlink =async(userid)=>{
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         let newArr=[];
         let phoneName=[]
+        let sortData;
         Contacts.getAll().then(contacts => {
         //  console.log('contacts',JSON.stringify(contacts));
           contacts.map((item)=>{
@@ -245,18 +246,20 @@ forwardlink =async(userid)=>{
               newArr.push(item.phoneNumbers[0].number);
               phoneName.push(obj);
             // console.log('map function contacts',item.phoneNumbers[0].number);
-            console.log('given Name',item.displayName)
-
+            // console.log('given Name',item.displayName)
+            sortData= phoneName.sort((a,b)=>a.name.localeCompare(b.name));
+           console.log('sort contacts',sortData);
+            
             }
           }) 
           // console.log('new array',newArr.join(','));
-           console.log('new format array',JSON.stringify(phoneName));
+          //  console.log('new format array',JSON.stringify(phoneName));
           // console.log('new array',JSON.stringify(contacts));
           let itemContacts=newArr.join(',')
           this.setState({newContacts:newArr.join(',')})
-          this.ContactListall(phoneName);
-          this.setState({phonenumber:phoneName})
-          AsyncStorage.setItem('@Phonecontacts',JSON.stringify(phoneName));
+          this.ContactListall(sortData);
+          this.setState({phonenumber:sortData})
+          AsyncStorage.setItem('@Phonecontacts',JSON.stringify(sortData));
           });
           
             
@@ -412,7 +415,7 @@ forwardlink =async(userid)=>{
       }
     });
   });
-  const notificationOpen = await fireBase
+  const notificationOpen = await firebase
   .notifications()
   .getInitialNotification();
   console.log('dashboard notification',notificationOpen)
@@ -798,6 +801,49 @@ if (notificationOpen) {
     console.log('pickedImage===',image);
   });
   }
+  SendReportIssue() {
+    console.log('working send report')
+    let formData = new FormData()
+    formData.append('user_id', this.state.userId)
+    formData.append('reason','Report post')
+    formData.append('message','Something went wrong with this post')
+    console.log('form data==' + JSON.stringify(formData))
+   // var otpUrl= 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/api-user/send-otp'
+    
+    var otpUrl ='http://www.cartpedal.com/frontend/web/api-user/report-problem'
+    console.log('url:' + otpUrl)
+    fetch(otpUrl, {
+      method: 'Post',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        device_id: '1234',
+        device_token:this.state.fcmtoken,
+        device_type: 'android',
+        Authorization: JSON.parse(this.state.userAccessToken),
+      },
+      body: formData,
+    })
+      .then(response => response.json())
+      .then(responseData => {
+  
+        if (responseData.code == '200') {
+        //   this.props.navigation.navigate('LoginScreen')
+        alert(responseData.data)
+             console.log(responseData);
+        } 
+        else {
+            alert(responseData.message);
+          console.log(responseData)
+        }
+        
+       
+      })
+      .catch(error => {
+        console.error(error)
+      })
+  
+      .done()
+  }
   render () {
     console.log('navigatiiondsfgh', this.props.navigation)
     return (
@@ -912,7 +958,7 @@ if (notificationOpen) {
                 style={{flex: 1, flexDirection: 'row'}}
                 data={this.state.user_stories}
                 keyExtractor={item => item.StoryImage}
-                renderItem={({item}) => {
+                renderItem={({item,index}) => {
                   console.log('story', JSON.stringify(item))
                   console.log('item stories viewer',item.stories[0].viewer)
                    return(
@@ -921,7 +967,7 @@ if (notificationOpen) {
                         style={styles.storyItemBox}
                         onPress={() => {
                           this.props.navigation.navigate('StoryViewScreen', {
-                            images:item.avatar,storyImages:item.stories,name:item.name,userid:item.id
+                           position:index, images:item.avatar,storyImages:item.stories,name:item.name,userid:item.id,storyArray:this.state.user_stories
                           })
                         }}>
                         <Image
@@ -1102,8 +1148,10 @@ if (notificationOpen) {
                         }}
                         option3Click={() => {
                           this.forwardlink(item.id)
-                         
                           // Toast.show('CLicked Forward Link', Toast.LONG)
+                        }}
+                        option4Click={() => {
+                          this.SendReportIssue()
                         }}
                       />
                     </View>
@@ -1114,7 +1162,8 @@ if (notificationOpen) {
                     <View style={styles.columnView}>
                       <View style={styles.ImageContainer}>
                         <Image
-                          source={{uri: item.products[0].image}}
+                      
+                          source={item.products[0].image?{uri: item.products[0].image}:null}
                           style={styles.Image2Container}></Image>
                         <Text style={styles.itemNameStyle}>
                           {item.products[0].name}
@@ -1126,7 +1175,7 @@ if (notificationOpen) {
                       </View>
                     {item.products[1]?(<View style={styles.ImageContainer2}>
                         <Image
-                          source={{uri: item.products[1].image}}
+                          source={item.products[1].image?{uri: item.products[1].image}:null}
                           style={styles.Image2Container}></Image>
                         <Text style={styles.itemNameStyle}>
                           {item.products[1].name}
@@ -1138,7 +1187,7 @@ if (notificationOpen) {
                       </View>):null}
                       {item.products[2]?(<View style={styles.ImageContainer2}>
                         <Image
-                          source={{uri: item.products[2].image}}
+                         source={item.products[2].image?{uri: item.products[2].image}:null}
                           style={styles.Image2Container}></Image>
                         <Text style={styles.itemNameStyle}>
                           {item.products[2].name}
@@ -1150,7 +1199,7 @@ if (notificationOpen) {
                       </View>):null}
                       {item.products[3]?(<View style={styles.ImageContainer2}>
                         <Image
-                          source={{uri: item.products[3].image}}
+                          source={item.products[3].image?{uri: item.products[3].image}:null}
                           style={styles.Image2Container}></Image>
                         <Text style={styles.itemNameStyle}>
                           {item.products[3].name}

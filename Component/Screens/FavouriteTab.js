@@ -17,7 +17,7 @@ import {
 } from 'react-native'
 import resp from 'rn-responsive-font'
 import SeeMore from 'react-native-see-more-inline';
-import CustomMenuIcon from './CustomMenuIcon'
+import MenuIcon from './MenuIcon'
 import Toast from 'react-native-simple-toast'
 import ReadMore from 'react-native-read-more-text'
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -472,6 +472,92 @@ class FavouriteTab extends Component {
     }));
        });
      }
+     SendReportIssue() {
+      console.log('working send report')
+      let formData = new FormData()
+      formData.append('user_id', this.state.userNo)
+      formData.append('reason','Report post')
+      formData.append('message','Something went wrong with this post')
+      console.log('form data==' + JSON.stringify(formData))
+     // var otpUrl= 'http://cartpadle.atmanirbhartaekpahel.com/frontend/web/api-user/send-otp'
+      
+      var otpUrl ='http://www.cartpedal.com/frontend/web/api-user/report-problem'
+      console.log('url:' + otpUrl)
+      fetch(otpUrl, {
+        method: 'Post',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          device_id: '1234',
+          device_token:this.state.fcmToken,
+          device_type: 'android',
+          Authorization: JSON.parse(this.state.userAccessToken),
+        },
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(responseData => {
+    
+          if (responseData.code == '200') {
+          //   this.props.navigation.navigate('LoginScreen')
+          alert(responseData.data)
+               console.log(responseData);
+          } 
+          else {
+              alert(responseData.message);
+            console.log(responseData)
+          }
+          
+         
+        })
+        .catch(error => {
+          console.error(error)
+        })
+    
+        .done()
+    }
+    blockuser=(block_id)=>{
+      this.showLoading();
+      let id=this.state.userNo;
+      let formData = new FormData();
+        
+      formData.append('user_id', id);
+      formData.append('block_id',block_id);
+      formData.append('type', 0);
+      console.log('form data==' + JSON.stringify(formData));
+  
+    // var CartList = this.state.baseUrl + 'api-product/cart-list'
+      var fav = "http://www.cartpedal.com/frontend/web/api-user/block-fav-user"
+      console.log('Add product Url:' + fav)
+      fetch(fav, {
+        method: 'Post',
+        headers: new Headers({
+          'Content-Type': 'multipart/form-data',
+          device_id: '1111',
+          device_token:this.state.fcmToken,
+          device_type: 'android',
+          // Authorization: 'Bearer' + this.state.access_token,  
+          Authorization:JSON.parse(this.state.userAccessToken), 
+        }),
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(responseData => {
+          if (responseData.code == '200') {
+            alert('User is blocked successfully');
+            this.FavouriteListCall();
+            this.hideLoading();
+          } else {
+            //  this.setState({NoData:true});
+             this.hideLoading();
+          }
+          console.log('User user ID==', JSON.stringify(responseData))
+        })
+        .catch(error => {
+          this.hideLoading();
+          console.error(error)
+        })
+        .done();
+    }
   render () {
     return (
       <SafeAreaView style={styles.container}
@@ -556,29 +642,33 @@ class FavouriteTab extends Component {
                       </View>
                     </TouchableOpacity>
           
-                    <CustomMenuIcon
-                      //Menu Text
-                      menutext='Menu'
-                      //Menu View Style
-                      menustyle={{
-                        marginRight: 5,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                      }}
-                      //Menu Text Style
-                      textStyle={{
-                        color: 'white',
-                      }}
-                      //Click functions for the menu items
-                      option1Click={() => {
-                        this.link()
-                        // Toast.show('CLicked Shared Link', Toast.LONG)
-                      }}
-                      option2Click={() => {
-                        this.forwardlink()
-                        // Toast.show('CLicked Forward Link', Toast.LONG)
-                      }}
-                    />
+                    <MenuIcon
+            menutext='Menu'
+            menustyle={{
+              marginRight: 5,
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              marginTop:3
+            }}
+            textStyle={{
+              
+              color: 'white',
+            }}
+            option1Click={() => {
+              this.blockuser(item.id) 
+            }}
+            option2Click={() => {
+              this.link()
+              // Toast.show('CLicked Share Link', Toast.LONG)
+            }}
+            option3Click={() => {
+              this.forwardlink()
+              // Toast.show('CLicked Forward Link', Toast.LONG)
+            }}
+            option4Click={() => {
+              this.SendReportIssue()
+            }}
+          />
                   </View>
                 </View>
                 <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>

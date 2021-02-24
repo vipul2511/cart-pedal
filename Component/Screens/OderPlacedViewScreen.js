@@ -25,7 +25,7 @@ import SeeMore from 'react-native-see-more-inline';
 class OderPlacedViewScreen extends Component {
   constructor(props) {
     super(props)
-    this.CartListCall = this.CartListCall.bind(this),
+    // this.CartListCall = this.CartListCall.bind(this),
     this.UserProfileCall = this.UserProfileCall.bind(this),
     this.AddFavourite = this.AddFavourite.bind(this);
     this.state = {
@@ -181,6 +181,10 @@ forwardlink =async(userid)=>{
       console.log("Edit user id token=" +token);
       if (token) {
         this.setState({ fcmToken: token });
+        let arr=[];
+        arr.push(this.props.navigation.state.params.wholeData);
+        this.setState({OderPlaceProduct:arr});
+        console.log('order data',this.state.OderPlaceProduct)
       }
     });
     AsyncStorage.getItem('@access_token').then((accessToken) => {
@@ -194,7 +198,7 @@ forwardlink =async(userid)=>{
       if (userId) {
           this.setState({ userNo: userId });
           console.log(" id from login  user id ====" + userId);
-          this.CartListCall();
+          // this.CartListCall();
           this.UserProfileCall();
           setTimeout(() => {
             this.hideLoading()
@@ -265,56 +269,57 @@ forwardlink =async(userid)=>{
       })
       .done();
   }
-  CartListCall() {
-    let formData = new FormData()
-      formData.append('user_id', this.state.userNo)
-      formData.append('type', 1)
-      console.log('form data==' + JSON.stringify(formData))
-     // var CartList = this.state.baseUrl + 'api-product/cart-list'
-      var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
-      console.log('Add product Url:' + CartList)
-      console.log('token',this.state.userAccessToken);
-      fetch(CartList, {
-        method: 'Post',
-        headers: new Headers({
-          'Content-Type': 'multipart/form-data',
-          device_id: '1111',
-          device_token: this.state.fcmToken,
-          device_type: 'android',
-          Authorization: JSON.parse(this.state.userAccessToken),  
-          // Authorization: 'Bearer xriPJWJGsQT-dUgP4qH11EMM357_kEaan7zJ4Vty'
-        }),
-        body: formData,
-      })
+  // CartListCall() {
+  //   let formData = new FormData()
+  //     formData.append('user_id', this.state.userNo)
+  //     formData.append('type', 1)
+  //     console.log('form data==' + JSON.stringify(formData))
+  //    // var CartList = this.state.baseUrl + 'api-product/cart-list'
+  //     var CartList = "http://www.cartpedal.com/frontend/web/api-product/cart-list"
+  //     console.log('Add product Url:' + CartList)
+  //     console.log('token',this.state.userAccessToken);
+  //     fetch(CartList, {
+  //       method: 'Post',
+  //       headers: new Headers({
+  //         'Content-Type': 'multipart/form-data',
+  //         device_id: '1111',
+  //         device_token: this.state.fcmToken,
+  //         device_type: 'android',
+  //         Authorization: JSON.parse(this.state.userAccessToken),  
+  //         // Authorization: 'Bearer xriPJWJGsQT-dUgP4qH11EMM357_kEaan7zJ4Vty'
+  //       }),
+  //       body: formData,
+  //     })
   
-        .then(response => response.json())
-        .then(responseData => {
-          // this.hideLoading();
-          if (responseData.code == '200') {
-          //  this.props.navigation.navigate('StoryViewScreen')
-          //  Toast.show(responseData.message);
-            this.setState({OderPlaceProduct:responseData.data})
-           // this.SaveProductListData(responseData)
-          } else {
-            this.setState({ NoData: true });
-            // alert(responseData.data);
-            // alert(responseData.data.password)
+  //       .then(response => response.json())
+  //       .then(responseData => {
+  //         // this.hideLoading();
+  //         if (responseData.code == '200') {
+  //         //  this.props.navigation.navigate('StoryViewScreen')
+  //         //  Toast.show(responseData.message);
+  //         console.log('product',responseData.data)
+  //           // this.setState({OderPlaceProduct:responseData.data})
+  //          // this.SaveProductListData(responseData)
+  //         } else {
+  //           this.setState({ NoData: true });
+  //           // alert(responseData.data);
+  //           // alert(responseData.data.password)
   
-          }
+  //         }
   
-          console.log('response object:', responseData)
-           console.log('User user ID==', JSON.stringify(responseData))
-          // console.log('access_token ', this.state.access_token)
-          //   console.log('User Phone Number==' + formData.phone_number)
-        })
-        .catch(error => {
-          // this.hideLoading();
-          console.error(error)
-        })
+  //         console.log('response object:', responseData)
+  //          console.log('User user ID==', JSON.stringify(responseData))
+  //         // console.log('access_token ', this.state.access_token)
+  //         //   console.log('User Phone Number==' + formData.phone_number)
+  //       })
+  //       .catch(error => {
+  //         // this.hideLoading();
+  //         console.error(error)
+  //       })
   
-        .done()
+  //       .done()
   
-  }
+  // }
   UserProfileCall() {
     let formData = new FormData()
   

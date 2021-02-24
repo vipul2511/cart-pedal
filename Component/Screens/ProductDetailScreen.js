@@ -193,7 +193,7 @@ export default class ProductDetailScreen extends React.Component {
             this.setState({userNameProduct:nameId})
             this.setState({itemOfProduct:responseData.data});
             this.setState({name:responseData.data.name});
-             this.setState({seller_id:responseData.data.id});
+             this.setState({seller_id:responseData.data.seller_id});
             this.setState({price:responseData.data.price});
           // Toast.show(responseData.message);
             // this.props.navigation.navigate('CartScreen');

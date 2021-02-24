@@ -269,7 +269,7 @@ class SettingScreen extends Component {
               <View style={styles.Profile2InfoContainer}>
                 <Text style={styles.PersonNameStyle}>Chats</Text>
                 <Text style={styles.ProfileDescription}>
-               Chat Backup, Delete All chats
+                Delete All chats
                 </Text>
               </View>
             

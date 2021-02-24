@@ -52,6 +52,7 @@ export default class UpdateProductScreen extends React.Component {
       fcmtoken:'',
       language:'',
       defaultCategory:'',
+      Unitid:'',
       defaultUnit:'',
       editImg:'',
       baseUrl: 'http://www.cartpedal.com/frontend/web/',
@@ -100,7 +101,7 @@ export default class UpdateProductScreen extends React.Component {
         console.log(" Edit user id ====" + this.state.userId);
         this.setState({productId:this.props.navigation.state.params.product_item.product_id});
         let item=this.props.navigation.state.params.product_item
-        this.setState({Category:item.categoryid,defaultCategory:item.category,Name:item.name,price:item.price.toString(),Unit:item.unit,defaultUnit:item.unit,bunch:item.bunch,Details_1:item.detailone,
+        this.setState({Category:item.categoryid,defaultCategory:item.category,Name:item.name,price:item.price.toString(),Unitid:item.unitid,Unit:item.unit,defaultUnit:item.unit,bunch:item.bunch,Details_1:item.detailone,
           Details_2:item.detailtwo,Description:item.description,Share:item.share});
           console.log('item',item);
       }
@@ -260,6 +261,34 @@ export default class UpdateProductScreen extends React.Component {
 
 
   }
+  openCamara() {
+    this.setState({ isProfileModalVisible: !this.state.isProfileModalVisible})
+   // this.imageSelectDialog.openCamera()
+   ImagePicker.openCamera({
+    width: 300,
+    height: 400,
+    cropping: true,
+    includeBase64:true
+  }).then(image => {
+    let newImage=this.state.newImageArr;
+    let imagePervious=this.state.imageList;
+    // response.map((item)=>{
+     let objImage={
+       path:image.path,
+       type:image.mime,
+       data:image.data,
+       fileName:image.modificationDate
+     }
+     let newObj={
+      file_url:image.path
+     }
+     newImage.push(objImage);
+     imagePervious.unshift(newObj);
+     this.setState({imageList:imagePervious});
+     this.setState({newImageArr:newImage});
+    console.log('pickedImage===',image);
+  });
+  }
   openImageGallery() {
     this.setState({ isProfileModalVisible: !this.state.isProfileModalVisible })
   //  this.imageSelectDialog.openGallery()
@@ -345,7 +374,7 @@ export default class UpdateProductScreen extends React.Component {
 
    AddProductCall() {
      console.log(JSON.stringify({
-      user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unit,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
+      user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unitid,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
       detailone:this.state.Details_1,detailtwo:this.state.Details_2
     }));
     var otpUrl = 'http://www.cartpedal.com/frontend/web/api-product/edit-product'
@@ -370,7 +399,7 @@ export default class UpdateProductScreen extends React.Component {
           // this.props.navigation.navigate('StoryViewScreen')
           console.log('response object:', JSON.stringify(responseData))
           Toast.show(responseData.message);
-          // this.props.navigation.navigate('ProfileScreen',{onGoBack: () => this.ProductListCall()});   
+          this.props.navigation.navigate('ProfileScreen',{onGoBack: () => this.ProductListCall()});   
           // this.SaveProductListData(response)
         } else {
           console.log(responseData.data);
@@ -439,28 +468,7 @@ export default class UpdateProductScreen extends React.Component {
     await AsyncStorage.setItem('@detailone', responseData.data.detailone.toString());
     await AsyncStorage.setItem('@detailtwo', responseData.data.detailtwo.toString());
   }
-  openCamara() {
-    this.setState({ isProfileModalVisible: !this.state.isProfileModalVisible})
-   // this.imageSelectDialog.openCamera()
-   ImagePicker.openCamera({
-    width: 300,
-    height: 400,
-    cropping: true,
-    
-  }).then(image => {
-    let newImage=this.state.newImageArr;
-    // response.map((item)=>{
-     let objImage={
-       path:image.path,
-       type:image.mime,
-       data:image.data,
-       fileName:image.modificationDate
-     }
-     newImage.push(objImage);
-     this.setState({newImageArr:newImage});
-    console.log('pickedImage===',image);
-  });
-  }
+ 
   openDeleteModal(){
     this.setState({isModalVisible: !this.state.isModalVisible})
   }
@@ -660,7 +668,7 @@ customButton=()=>{
   style={{height: 50, width: screenWidth-55}}
   
   onValueChange={(itemValue, itemIndex) => {
-    if(itemValue != "0")this.setState({Unit: itemValue})
+    if(itemValue != "0")this.setState({Unit: itemValue,Unitid:itemValue})
     else alert('Please select correct unit');
   }  
   }>

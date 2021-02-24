@@ -213,14 +213,6 @@ forwardlink =async(userid)=>{
         this.hideLoading();
       }
   });
-    
-  //   AsyncStorage.getItem('@user_id').then((userId) => {
-  //     if (userId) {
-  //         this.setState( { userId: userId });
-  //         console.log("Edit user id Dhasbord ====" + this.state.userId);
-         
-  //     }
-  // });
   }
   ListEmpty = () => {
     return (
@@ -453,7 +445,7 @@ forwardlink =async(userid)=>{
 
               <TouchableOpacity style={styles.itemBox} onPress={() => {
                 console.log('userData=====',item.name)
-               this.props.navigation.navigate('OderPlacedViewScreen',{ id: item.id, name: item.name })
+               this.props.navigation.navigate('OderPlacedViewScreen',{ id: item.id, name: item.name,wholeData:item })
              }}>
               <View style={styles.box}>
                 <View style={styles.ProfileImageContainer}>
@@ -493,7 +485,7 @@ forwardlink =async(userid)=>{
                   <TouchableOpacity
                    onPress={() => {
                      console.log('userData=====',item.name)
-                    this.props.navigation.navigate('OderPlacedViewScreen',{ id: item.id, name: item.name })
+                    this.props.navigation.navigate('OderPlacedViewScreen',{ id: item.id, name: item.name,wholeData:item })
                   }}>
                     <View style={styles.ViewButtonContainer}>
                       <Text style={styles.viewButtonStyle}>View All</Text>

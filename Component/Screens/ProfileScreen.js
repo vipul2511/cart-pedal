@@ -1049,7 +1049,7 @@ uploadCoverPhoto = (imageList) => {
    }
   viewFunc=()=>{
     console.log('covers',this.state.imagesCoverID);
-    this.props.navigation.navigate('ViewProfileScreen', {images: this.state.covers});
+    this.props.navigation.navigate('ViewProfileScreen', {images: this.state.covers,profileScren:'1'});
   }
   addStoryApi = data => {
     this.showLoading()
@@ -1592,7 +1592,7 @@ uploadCoverPhoto = (imageList) => {
                     }}
                     style={styles.listItem}>
                     <Image
-                      source={{uri: item.images[0].file_url}}
+                      source={item.images[0]?{uri:item.images[0].file_url}:this.state.pickedImage}
                       style={styles.image}
                     />
                    {item.images[1]?( <TouchableOpacity style={styles.MultipleOptionContainer}>
