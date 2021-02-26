@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import AsyncStorage from '@react-native-community/async-storage';
 import resp from 'rn-responsive-font'
+import CheckBox from 'react-native-check-box';
 console.disableYellowBox = true
 
 class PhoneScreen extends Component {
@@ -18,6 +19,7 @@ class PhoneScreen extends Component {
     this.forgetCall = this.forgetCall.bind(this)
     this.state = {
       phone_number: '',
+      isChecked:'',
       fcmToken:'',
       baseUrl: 'http://www.cartpedal.com/frontend/web/',
     }
@@ -41,6 +43,8 @@ componentDidMount(){
       alert('Please Enter Mobile Number')
     } else if (this.state.phone_number.length != '10') {
       alert('Please Enter Valid Mobile Number')
+    } else if(this.state.isChecked===false || this.state.isChecked===''){
+      alert('Please select the Terms and condition')
     } else {
       this.forgetCall();
       this.showLoading();
@@ -147,7 +151,41 @@ componentDidMount(){
                 onChangeText={phone_number => this.setState({ phone_number })}
               />
             </View>
+            <View style={{
+                                    flexDirection: 'row',
+                                    marginBottom: 15
+                                }}>
 
+<CheckBox
+                                        uncheckedCheckBoxColor={'#FB3954'}
+                                        checkedCheckBoxColor={'#FB3954'}
+                                        value={this.state.isChecked}
+                                        onValueChange={() => this.setState({ isChecked: !this.state.isChecked })}
+                                        onClick={() => {
+                                            this.setState({ isChecked: !this.state.isChecked },()=>{
+                                                if (this.state.isChecked==true) {
+                                                
+                                            }
+                                            });
+                        
+
+                                        }}
+                                        isChecked={this.state.isChecked}
+                                    />
+                                  <View >
+                                    <Text
+                                        style={{
+                                            marginTop: 5, color: '#06142D', marginHorizontal: 5,
+                                            borderBottomWidth: 1, borderColor: '#C7E8F2', fontSize: 12
+                                        }}
+                                    > I Accept
+                                     <Text onPress={() => this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup'})} style={{color:'#FB3954'}}> Terms & Conditions </Text>
+                                     and 
+                                     <Text onPress={() => this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup1'})} style={{color:'#FB3954'}}> Privacy Policy.</Text>
+                                     </Text>
+                                    </View>
+
+                                </View>
             <TouchableOpacity
               style={styles.loginButtonStyle}
               activeOpacity={0.2}

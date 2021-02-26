@@ -103,6 +103,25 @@ class HelpScreen extends Component {
               </View>
             
             </TouchableOpacity>
+            <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup'})}}>
+              <View style={styles.Profile2ImageContainer}>
+                <TouchableOpacity onPress={()=>{this.props.navigation.navigate('MyWebComponent',{screenSide:'Signup'})}}
+                >
+                  <Image
+                    source={require('../images/terms.png')}
+                    style={styles.Profile2ImageViewStyle}
+                  />
+                 
+                </TouchableOpacity>
+              </View>
+              <View style={styles.Profile2InfoContainer}>
+                <Text style={styles.PersonNameStyle}>Terms and Conditions</Text>
+                <Text style={styles.ProfileDescription}>
+             
+                </Text>
+              </View>
+            
+            </TouchableOpacity>
             <TouchableOpacity style={styles.Profile2Container} onPress={()=>{this.props.navigation.navigate('AppInfo')}}>
               <View style={styles.Profile2ImageContainer}>
                 <TouchableOpacity onPress={()=>{this.props.navigation.navigate('AppInfo')}}
