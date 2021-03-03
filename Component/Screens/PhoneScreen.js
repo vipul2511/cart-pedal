@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  ScrollView,
   ActivityIndicator,
 } from 'react-native'
 import AsyncStorage from '@react-native-community/async-storage';
@@ -96,7 +97,7 @@ componentDidMount(){
 
   render() {
     return (
-
+<ScrollView style={{flex:1,backgroundColor:'#fff'}}>
       <View style={styles.container}>
 
         <View style={styles.headerContainer}>
@@ -201,9 +202,9 @@ componentDidMount(){
             )}
           </View>
         </View>
-
+        
       </View>
-
+      </ScrollView>
     )
   }
 }
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container3: {
-    flex: .6,
+   flex:.6,
     width: '100%',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
