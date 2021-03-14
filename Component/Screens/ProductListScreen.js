@@ -50,6 +50,7 @@ class ProductListScreen extends Component {
         story_id:'',
         TotalprofileView: '',
         totalProductViews: '',
+        showHeaderIcon:false,
         userProfileData: '',
         userStoryName: '',
         currentUserPhone: '',
@@ -599,8 +600,9 @@ class ProductListScreen extends Component {
       })
       .done()
   }
-  tickIcon=(items,index)=>{
+  tickIcon= (items,index)=>{
     console.log('items in tick ICon',JSON.stringify(items));
+
     let image=this.state.productmaster;
     let Innerimage=this.state.productDetailInner;
     image.push(items.images[0].file_url);
@@ -617,7 +619,7 @@ class ProductListScreen extends Component {
       Innerimage.push(obj);
     })):null}
     
-    
+    this.setState({showHeaderIcon:true})
     console.log('working index',image)
     this.setState({showTick:index});
       this.setState({productmaster:image});
@@ -662,11 +664,12 @@ class ProductListScreen extends Component {
           <TouchableOpacity
             style={styles.SearchContainer}
             onPress={() => {
-              this.submit()
-              // this.props.navigation.navigate('SearchBarScreen')
+              if(this.state.showHeaderIcon==true){
+                this.submit()
+              }
             }}>
             <Image
-              source={require('../images/search.png')}
+              source={this.state.showHeaderIcon?require('../images/rightProfileIcons.png'):require('../images/search.png')}
               style={styles.SearchIconStyle}
             />
           </TouchableOpacity>

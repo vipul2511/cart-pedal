@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native'
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator, Image,ScrollView } from 'react-native'
 import resp from 'rn-responsive-font'
 console.disableYellowBox = true
 class ForgotPasswordScreen extends Component {
@@ -78,6 +78,7 @@ class ForgotPasswordScreen extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <ScrollView>
         <View style={styles.headerView}>
           <TouchableOpacity
             onPress={() => this.props.navigation.goBack()}>
@@ -129,6 +130,7 @@ class ForgotPasswordScreen extends Component {
             </View>
           )}
         </View>
+        </ScrollView>
       </View>
     )
   }

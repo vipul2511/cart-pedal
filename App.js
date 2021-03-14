@@ -79,6 +79,7 @@ import ChangePassword from './Component/Screens/ChangePassword';
 import AdminReport from './Component/Screens/AdminReport'
 import ReportIssue from './Component/Screens/ReportIssue';
 import ProductMasterSaveScreen from './Component/Screens/ProductMatserSaveScreen';
+import AudioPlayer from './Component/Component/AudioPlayer';
 pushNotifications.configure();
 const messaging = firebase.messaging();
 
@@ -189,7 +190,8 @@ const NavStack = createStackNavigator(
     AdminReport:{screen:AdminReport},
     ReportIssue:{screen:ReportIssue},
     ProductMasterImage:{screen:ProductMasterImage},
-    ProductMasterSaveScreen:{screen:ProductMasterSaveScreen}
+    ProductMasterSaveScreen:{screen:ProductMasterSaveScreen},
+    AudioPlayer:{screen:AudioPlayer}
   },
   {
     

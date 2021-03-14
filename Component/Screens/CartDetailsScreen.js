@@ -326,6 +326,9 @@ removeProductCall() {
       <SafeAreaView style={styles.mainContainer}>
       <StatusBar barStyle="dark-content" backgroundColor={'#fff'} />
         <View style={[styles.container,{backgroundColor:'#e3e3e3'}]}>
+        <TouchableOpacity style={styles.editImageBox} onPress={() => this.props.navigation.goBack()}>
+        <Image style={styles.editImage} source={require('../images/back_blck_icon.png')} />
+      </TouchableOpacity>
         <TouchableOpacity style={styles.DeleteButtonContainer}
                                     onPress={() => {
                                         this.OpenDeleteModalBox()
@@ -336,6 +339,7 @@ removeProductCall() {
             sliderImages={this.state.imageList}
             rendorImages={(item, index) => this.renderInnerImageList(item, index)}
         />
+        
         </View>
         {(!this.state.showFullImageView)?
         <View style={{backgroundColor:'white',borderTopStartRadius:30,borderTopEndRadius:30,marginTop:-50}}>
@@ -450,6 +454,23 @@ const styles = StyleSheet.create({
   },
   container:{
     flex:1,
+  },
+  editImageBox:{
+    top: 10,
+    width: 40,
+    height: 40,
+    backgroundColor:'#fff',
+    borderRadius:150,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    left: 10,
+    zIndex:1
+  },
+  editImage:{
+width:20,
+height:20
   },
   DeleteButtonContainer: {
     // flex:0.2,

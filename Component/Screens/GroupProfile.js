@@ -11,6 +11,7 @@ import resp from 'rn-responsive-font'
 import Spinner from 'react-native-loading-spinner-overlay'
 import Icon from 'react-native-vector-icons/Entypo';
 import ImagePicker from 'react-native-image-crop-picker';
+import Feather from 'react-native-vector-icons/Feather';
 import ImageModal from 'react-native-image-modal';
 const screenWidth = Dimensions.get('screen').width;
 let width = Dimensions.get('window').width;
@@ -35,6 +36,7 @@ export default class GroupProfile extends React.Component {
           price:'',
           totalPrice:'',
           product_id:'',
+          mediaArr:[],
           seller_id:'',
           fcmToken:'',
           imageList : [],
@@ -107,6 +109,7 @@ export default class GroupProfile extends React.Component {
         this.setState({userName: JSON.parse(userName)})
         console.log('username   ====' + this.state.userName)
         this.AddCartProductCall();
+          this.singleProductPlaceOrder()
       }
     });
      }
@@ -341,16 +344,12 @@ export default class GroupProfile extends React.Component {
     }
     singleProductPlaceOrder = () => {
       let formData = new FormData();
-      formData.append('user_id', this.state.userNo);
-      formData.append('seller_id', this.state.seller_id);
-      formData.append('type',1)
-      formData.append('product_id',  this.state.itemOfProduct.id)
-      formData.append('quantity', this.state.currentQuantity)
-      formData.append('price',  this.state.totalPrice)
-     
+      formData.append('user_id', this.state.userId);
+      formData.append('toid',this.props.navigation.state.params.groupId);
+      formData.append('type','1')
       console.log('form data==' + JSON.stringify(formData));  
   
-      var PalceOderUrl ="http://www.cartpedal.com/frontend/web/api-product/place-order"
+      var PalceOderUrl ="http://www.cartpedal.com/frontend/web/api-message/media-list"
       // var PalceOderUrl = "https://www.cartpedal.com/frontend/web/api-product/place-order"
       console.log('placeOder:' + PalceOderUrl)
       fetch(PalceOderUrl, {
@@ -370,23 +369,18 @@ export default class GroupProfile extends React.Component {
         .then(response => response.json())
         .then(responseData => {
           if (responseData.code == '200 ') {
-            //  this.props.navigation.navigate('StoryViewScreen')
-           Toast.show("Order is placed successfully");
-            // this.props.navigation.navigate('DashBoardScreen');
-            // this.setState({CartListProduct:responseData.data})
-            // this.SaveProductListData(responseData)
+            let arr=this.state.mediaArr;
+            arr.push(responseData.data)
+            this.setState({mediaArr:responseData.data});
+            console.log(JSON.stringify(responseData));
             }
-          // else if (responseData.code == '500') {
-          //   //Toast.show(responseData.message)
-          // }
-  
           else {
             // alert(responseData.data);
             // alert(responseData.data.password)
   
           }
   
-          console.log('response object:', responseData)
+          console.log('media link and docs:', responseData)
           console.log('User user ID==', JSON.stringify(responseData))
           // console.log('access_token ', this.state.access_token)
           //   console.log('User Phone Number==' + formData.phone_number)
@@ -395,7 +389,9 @@ export default class GroupProfile extends React.Component {
           this.hideLoading();
           console.error(error)
         })
+  
         .done()
+  
     }
     closeProfileModal= ()=> {
       this.setState({isImageModalVisible: false})
@@ -632,9 +628,34 @@ export default class GroupProfile extends React.Component {
          <Text style={{fontSize:15,color:'#F01738'}}>Media,links,and docs</Text>
          </View>
        </View>      
-         {/* <View style={{marginLeft:35,marginTop:15}}>
-           <Text style={{fontSize:17,color:'#4F4F4F'}}>{this.state.name}</Text>
-         </View> */}
+       <View style={{flexDirection:'row', height:'auto',width:Dimensions.get('window').width}}>
+         <ScrollView horizontal={true}> 
+         {this.state.mediaArr.map((item,index)=>{ 
+        console.log('item',item);
+    return (<View style={{flexDirection:'row'}}>   
+           {item.type=="image"?(<View style={{borderWidth:5,flexDirection:'row', borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:0}}>
+            <ImageModal
+              style={{
+                height: 45,
+                borderRadius: 8,
+                width: 45,
+                
+              }}
+              imageBackgroundColor="transparent"
+              source={{uri: item.attachment}}
+            />
+          </View>):item.type=="audio"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="headphones" color="#fff" size={18}     />
+            </View>:item.type=="video"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="video" color="#fff" size={18}     />
+            </View>:item.type=="file"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            <Feather name="file" color="#fff" size={18}     />
+            </View>:null}
+         
+        </View>)
+      })}
+ </ScrollView>
+         </View>
                   </View>
                   <View style={styles.Name2}>
        <View style={{flexDirection:'row'}}>
@@ -928,7 +949,7 @@ const styles = StyleSheet.create({
   Name:{
   marginTop:10,
   backgroundColor:'#fff',
-  height:75,
+  height:'auto',
   width:Dimensions.get('window').width
   
   },

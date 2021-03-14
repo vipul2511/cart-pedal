@@ -389,7 +389,7 @@ export default class UpdateProductScreen extends React.Component {
         Authorization:JSON.parse(this.state.access_token),
       },
       body:JSON.stringify({
-        user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unit,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
+        user_id:this.state.userId,product_id:this.state.productId,name:this.state.Name,upload:this.state.newImageArr,imageids:'',category:this.state.Category,unit:this.state.Unitid,price:this.state.price,description:this.state.Description,bunch:this.state.bunch,
         detailone:this.state.Details_1,detailtwo:this.state.Details_2
       }),
     }).then(response => response.json())
@@ -547,9 +547,16 @@ customButton=()=>{
           
         <Image style={styles.imageView} source={{uri:this.state.imageList}} />
       </TouchableOpacity> */}
-      <TouchableOpacity style={styles.editImageBox} onPress={()=>{this.setState({isProfileModalVisible:true})}}>
-        <Image style={styles.editImage} source={require('../images/edit_product.png')} />
+      {/* <TouchableOpacity onPress={() => this.props.navigation.goBack()} style={{position: 'absolute',start : 20,top: 30,backgroundColor:'red'}}>
+            <Image  source={require('../images/back_blck_icon.png')} style={styles.backIcon}/>
+        </TouchableOpacity> */}
+         <TouchableOpacity style={styles.editImageBox} onPress={() => this.props.navigation.goBack()}>
+        <Image style={styles.editImage} source={require('../images/back_blck_icon.png')} />
       </TouchableOpacity>
+      <TouchableOpacity style={styles.editImageBox1} onPress={()=>{this.setState({isProfileModalVisible:true})}}>
+        <Image style={styles.editImage1} source={require('../images/edit_product.png')} />
+      </TouchableOpacity>
+
           <AppImageSlider
             sliderImages={this.state.imageList}
             rendorImages={(item, index) => this.renderInnerImageList(item, index)}
@@ -664,7 +671,7 @@ customButton=()=>{
         <View style={styles.inputTextView}>
             <Picker 
             
-  selectedValue={this.state.Unit}
+  selectedValue={this.state.Unitid}
   style={{height: 50, width: screenWidth-55}}
   
   onValueChange={(itemValue, itemIndex) => {
@@ -896,6 +903,7 @@ const styles = StyleSheet.create({
     height: 35,
     width: 35,
     resizeMode: 'contain',
+    backgroundColor:'#fff'
   },
   editImageBox:{
     top: 10,
@@ -911,6 +919,23 @@ const styles = StyleSheet.create({
     zIndex:1
   },
   editImage:{
+width:20,
+height:20
+  },
+  editImageBox1:{
+    top: 10,
+    width: 40,
+    height: 40,
+    backgroundColor:'#fff',
+    borderRadius:150,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    left: 60,
+    zIndex:1
+  },
+  editImage1:{
 width:40,
 height:40
   },

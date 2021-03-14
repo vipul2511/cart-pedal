@@ -4,7 +4,7 @@ import {View,Text,TouchableOpacity} from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import Menu, { MenuItem } from 'react-native-material-menu';
 import { withNavigation } from 'react-navigation';
-
+import firebase from 'react-native-firebase';
 export default class ImageSelectDialogs extends Component {
   constructor(props) {
       super();
@@ -42,7 +42,9 @@ openCamera()
   }).then(image => {
     this.onImagePick(image)
     console.log('picimage===',image);
-  });
+  }).catch(error=>{
+    alert('eror',error)
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchCamera(options, (response) => 
   // {
   //   this.onImagePick(response)
@@ -60,7 +62,8 @@ openCameraCoverPhoto()
   }).then(image => {
     this.onImagePick(image)
     console.log('picimage===',image);
-  });
+  }).catch(error=>{
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchCamera(options, (response) => 
   // {
   //   this.onImagePick(response)
@@ -78,7 +81,8 @@ openGalleryCoverPhoto()
   }).then(image => {
     this.onImagePick(image)
     console.log('pickimage==',image);
-  });
+  }).catch(error=>{
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchImageLibrary(options, (response) => { 
   //   this.onImagePick(response)
   // });
@@ -96,7 +100,8 @@ openGallery()
   }).then(image => {
     this.onImagePick(image)
     console.log('pickimage==',image);
-  });
+  }).catch(error=>{
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchImageLibrary(options, (response) => { 
   //   this.onImagePick(response)
   // });

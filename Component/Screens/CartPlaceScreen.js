@@ -663,7 +663,7 @@ forwardlink =async(userid)=>{
         <View style={styles.ListMenuContainer}>
           <TouchableOpacity  style={styles.messageButtonContainer}  onPress={() => {
             console.log('id of user',item.id);
-            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar, groupexit:false,groupId:0})
+            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar,groupexit:false,groupId:"0",msg_type:"0",userphone:item.mobile})
                       }}>
               <Image
                 source={require('../images/message_icon.png')}

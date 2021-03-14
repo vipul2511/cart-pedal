@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import {TextInput} from 'react-native-gesture-handler';
 import DocumentPicker from 'react-native-document-picker';
 import PushNotification from 'react-native-push-notification';
+import firebase from 'react-native-firebase';
 import VideoPlayer from 'react-native-video-player';
 import ImagePicker from 'react-native-image-crop-picker';
 // import ImageCropPicker from 'react-native-image-crop-pick2er';
@@ -150,6 +151,7 @@ class ChatDetailScreen extends React.Component {
 
   componentDidMount = () => {
     // this.focusListener = this.props.navigation.addListener("willFocus", () => {
+      this.requestCameraPermission();
     let test;
     var _this = this;
     AsyncStorage.getItem('@user_id').then((userId) => {
@@ -271,7 +273,7 @@ class ChatDetailScreen extends React.Component {
     if(this.state.showlocationmsg==true  && this.state.replyMessage!=''){
       replyID=this.state.replyMessage.text.id;
     }
-    if(this.state.showfilerply=true  && this.state.replyMessage!=''){
+    if(this.state.showfilerply==true  && this.state.replyMessage!=''){
       replyID=this.state.replyMessage.text.id;
     }
     if(this.state.showcontactrply==true  && this.state.replyMessage!=''){
@@ -728,35 +730,37 @@ class ChatDetailScreen extends React.Component {
         });
       }
     // });
-  });
+  }).catch(error=>{
+    alert('error',error);
+    firebase.crashlytics().recordError(error);  });
   };
    
   sendImage=async()=>{
     this.setState({imageshow:true})
     let response=this.state.imageView;
     await this.setState({open: false});
-    const messageToSent = {
-      ...newMessage,
-      msg_type: 'image',
-      fmsg: '',
-      fattach: {...newMessage.fattach, attach: response.path},
-      time: moment().format('hh:mm'),
-    };
-    if(this.state.ischatList&& this.state.chatList.messages.length>0){
-      this.setState((p) => ({
-        chatList: {
-          ...p.chatList,
-          messages: [...p.chatList.messages, messageToSent],
-        },
-        ischatList: true,
-      }));
-    }else{
-      this.setState((p)=>({
-        chatList:{
-          message:[ p.chatList.messages,messageToSent]
-        }
-      }))
-    }
+    // const messageToSent = {
+    //   ...newMessage,
+    //   msg_type: 'image',
+    //   fmsg: '',
+    //   fattach: {...newMessage.fattach, attach: response.path},
+    //   time: moment().format('hh:mm'),
+    // };
+    // if(this.state.ischatList&& this.state.chatList.messages.length>0){
+    //   this.setState((p) => ({
+    //     chatList: {
+    //       ...p.chatList,
+    //       messages: [...p.chatList.messages, messageToSent],
+    //     },
+    //     ischatList: true,
+    //   }));
+    // }else{
+    //   this.setState((p)=>({
+    //     chatList:{
+    //       message:[ p.chatList.messages,messageToSent]
+    //     }
+    //   }))
+    // }
    
     this.uploadImage(response);
     if (response.didCancel) {
@@ -808,6 +812,24 @@ class ChatDetailScreen extends React.Component {
 //       </View>
 //     )
 //    }
+ requestCameraPermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        'title': 'App Premission',
+        'message': 'Chat x App need permission.'
+      }
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log("You can use the camera");
+    } else {
+      console.log("Camera permission denied");
+    }
+  } catch (err) {
+    console.warn(err);
+  }
+};
   videoPicker = async () => {
     ImagePicker.openPicker({
       mediaType: "video",
@@ -1217,7 +1239,7 @@ class ChatDetailScreen extends React.Component {
     const data = new FormData();
 
     data.append('user_id', userId);
-    data.append('type','0')
+    data.append('type',this.props.navigation.state.params.msg_type)
     data.append('toid',this.props.navigation.state.params.userid );
        console.log('data',JSON.stringify(data))
     var EditProfileUrl =
@@ -1239,7 +1261,7 @@ class ChatDetailScreen extends React.Component {
         if (responseData.code == '200') {
         
           //  Toast.show(responseData.message);
-          this.setState({chatList:''});
+          this.setState({chatList: {messages: []}});
         } else {
           console.log(responseData.data);
         }
@@ -1544,12 +1566,14 @@ replytype=()=>{
                         />
                       </TouchableOpacity>
                     }>
-                    <MenuItem onPress={() =>{ this._menu.hide()
+                    {/* <MenuItem onPress={() =>{ this._menu.hide()
                     this.openProfile()
                     }}>
                       View Contact
-                    </MenuItem>
-                    <MenuItem onPress={() => this._menu.hide()}>
+                    </MenuItem> */}
+                    <MenuItem onPress={() => {this._menu.hide()
+                    this.openProfile()
+                    }}>
                       Media,links,and docs
                     </MenuItem>
                     <MenuItem onPress={() => {this._menu.hide()

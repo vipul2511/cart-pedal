@@ -409,10 +409,7 @@ this.props.navigation.navigate('ForwardLinkScreen', {
               {this.state.about? (<SeeMore style={styles.PersonDescriptionStyle} numberOfLines={4}  linkColor="red" seeMoreText="read more" seeLessText="read less">
                         {this.state.about}
                   </SeeMore>):null}
-                  </View>
-                    
-                 
-              
+                  </View>  
               </View>
               </View>
               <TouchableOpacity onPress={this.AddFavourite} style={styles.messageButtonContainer}>
@@ -462,30 +459,21 @@ this.props.navigation.navigate('ForwardLinkScreen', {
                     </TouchableOpacity>
           
                     <CustomMenuIcon
-          
           menutext='Menu'
-          
-          
-          
           menustyle={{
           marginRight: 5,
           flexDirection: 'row',
           justifyContent: 'flex-end',
           }}
-          
           textStyle={{
           color: 'white',
           }}
-          
           option1Click={() => {
             this.link()
-          // Toast.show('CLicked Shared Link', Toast.LONG)
           
           }}
           option2Click={() => {
             this.forwardlink()
-          // Toast.show('CLicked Forward Link', Toast.LONG)
-          
           
           }}
           />

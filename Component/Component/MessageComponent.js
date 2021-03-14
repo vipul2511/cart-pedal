@@ -134,6 +134,7 @@ export const MessageComponent = ({
     }));
   };
   const onPausePlay1 = async () => {
+    console.log('working');
     await audioRecorderPlayer.pausePlayer();
     setAudio1((p) => ({
       current: p.current,
@@ -143,6 +144,7 @@ export const MessageComponent = ({
     setpause(true);
   };
  const onPlay = async (uri,playerId) => {
+   console.log('player id',playerId);
     // No player are reading or it is the same player
     if (pause && playerRecording==playerId) 
       return onStartPlay1(uri);
@@ -900,12 +902,17 @@ export const MessageComponent = ({
             alignSelf: 'flex-start',
             marginVertical: 10,
           }}>
+            <View style={{backgroundColor: '#FFFFFF',
+              borderRadius: 8,width:'80%',
+              elevation: 5,}}>
+            {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
           <View
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: 8,
-              elevation: 5,
-              width: '80%',
+              // elevation: 5,
+              width: '100%',
               flexDirection: 'row',
               alignItems: 'center',
               padding: 10,
@@ -937,6 +944,7 @@ export const MessageComponent = ({
                   </Text>
                 ))}
             </View>
+          </View>
           </View>
           <Text
             style={{
@@ -1050,9 +1058,17 @@ export const MessageComponent = ({
               borderRadius: 8,
               elevation: 5,
               width: '70%',
+              backgroundColor:'#fff',
+             
             }}
-          />
-          <View style={{borderWidth:5, borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:message.tattach.caption!==""?8:0}}>
+
+          > 
+           {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
+         
+            
+          <View style={{borderWidth:5, borderTopLeftRadius: 8,borderTopRightRadius:8,borderColor:'#fff',borderBottomLeftRadius:message.tattach.caption!==""?8:7,borderBottomRightRadius:message.tattach.caption!==""?8:7}}>
+         
             <ImageModal
               style={{
                 height: 200,
@@ -1068,6 +1084,7 @@ export const MessageComponent = ({
           {message.tattach.caption!==""?<View style={{backgroundColor:'#fff',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
          <Text style={{marginLeft:5,marginTop:8,fontSize:16,color:'black',marginBottom:5}}>{message.tattach.caption}</Text>
           </View>:null}
+          </View>
           <Text
             style={{
               color: '#524D4D',
@@ -1079,6 +1096,7 @@ export const MessageComponent = ({
             {message.time}
           </Text>
         </View>
+       
       );
     }
     if (message.fattach !== null && message.fattach !== '') {
@@ -1161,9 +1179,11 @@ export const MessageComponent = ({
               borderRadius: 8,
               elevation: 5,
               width: '70%',
+              backgroundColor:'#fff'
             }}
-          />
-
+          >
+{message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
           <View>
             <VideoPlayer
               video={{uri: message.fattach.attach}}
@@ -1192,7 +1212,7 @@ export const MessageComponent = ({
               ]}
             />
           </View>
-
+</View>
           <Text
             style={{
               color: '#524D4D',
@@ -1293,12 +1313,17 @@ export const MessageComponent = ({
             alignSelf: 'flex-start',
             marginVertical: 10,
           }}>
+            <View style={{backgroundColor: '#FFFFFF',
+              borderRadius: 8,width:'80%',
+              elevation: 5,}}>
+            {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
           <View
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: 8,
-              elevation: 5,
-              width: '80%',
+              // elevation: 5,
+              width: '100%',
               flexDirection: 'row',
               alignItems: 'center',
               padding: 10,
@@ -1312,7 +1337,7 @@ export const MessageComponent = ({
                   onPlay(message.tattach.attach,message.id);
                 }
               }}
-              name={audio1.playing ? 'pause' : 'play'}
+              name={audio1.playing? 'pause' : 'play'}
               style={{color: 'grey'}}
             />
             <View
@@ -1332,6 +1357,7 @@ export const MessageComponent = ({
                 { playerRecording==message.id ?audioRecorderPlayer.mmssss(audio1.current).slice(0, -3):'00:00'}
               </Text>
             </View>
+          </View>
           </View>
           <Text
             style={{
@@ -1368,11 +1394,12 @@ export const MessageComponent = ({
                     onPausePlay1();
                   } else {
                     setPlayerRecording(message.id);
+                    
                   onPlay(message.fattach.attach,message.id);
                     // onStartPlay(message.fattach.attach);
                   }
                 }}
-                name={audio1.playing ? 'pause' : 'play'}
+                name={audio1.playing? 'pause' : 'play'}
                 style={{color: 'white'}}
               />
             )}
@@ -1445,6 +1472,11 @@ export const MessageComponent = ({
             alignSelf: 'flex-start',
             marginVertical: 10,
           }}>
+            <View style={{backgroundColor: '#FFFFFF',
+              borderRadius: 8,width:'80%',
+              elevation: 5,}}>
+            {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
           <TouchableOpacity
             onPress={() => {
               downloadAndOpenDocument(message.tattach.attach);
@@ -1452,8 +1484,8 @@ export const MessageComponent = ({
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: 8,
-              elevation: 5,
-              width: '80%',
+              // elevation: 5,
+              width: '100%',
               flexDirection: 'row',
               alignItems: 'center',
               padding: 10,
@@ -1474,6 +1506,7 @@ export const MessageComponent = ({
               </Text>
             </View>
           </TouchableOpacity>
+          </View>
           <Text
             style={{
               color: '#524D4D',
@@ -1572,8 +1605,12 @@ export const MessageComponent = ({
           style={{
             alignSelf: 'flex-start',
             marginVertical: 10,
+            
           }}>
-          <Lightbox onOpen={() => setOpen(true)} onClose={() => setOpen(false)}>
+            <View style={{backgroundColor:'#fff',borderRadius:8,width:205,height:315}}>
+            {message.tname?(<View style={{marginLeft:5,marginRight:5,marginTop:5}} >
+              <Text style={{color:'#1EA81D',fontSize: 15,}}>{message.tname}</Text></View>):null}
+          <Lightbox onOpen={() => setOpen(true)} onClose={() => setOpen(false)} >
             <View
               style={{
                 borderRadius: 8,
@@ -1597,6 +1634,7 @@ export const MessageComponent = ({
               </MapView>
             </View>
           </Lightbox>
+          </View>
           <Text
             style={{
               color: '#524D4D',

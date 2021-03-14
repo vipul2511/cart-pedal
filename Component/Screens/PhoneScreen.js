@@ -97,7 +97,7 @@ componentDidMount(){
 
   render() {
     return (
-<ScrollView style={{flex:1,backgroundColor:'#fff'}}>
+<ScrollView style={{flex:1,backgroundColor:'#fff'}} >
       <View style={styles.container}>
 
         <View style={styles.headerContainer}>

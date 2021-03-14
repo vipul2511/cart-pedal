@@ -463,7 +463,7 @@ forwardlink =async(userid)=>{
               <View style={styles.ListMenuContainer}>
                 <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
                             // console.log('chat screen',this.state.wholeData.id);
-                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id,userabout:this.state.ProfileData.about, username:this.state.ProfileData.name,useravatar:this.state.avatar, groupexit:false,groupId:0})
+                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id,userabout:this.state.ProfileData.about, username:this.state.ProfileData.name,useravatar:this.state.avatar, groupexit:false,groupId:"0",msg_type:"0",userphone:this.state.ProfileData.mobile})
                         // this.props.navigation.navigate('ChatDetailScreen',{userid:this.props.navigation.state.params.id})
                       }}>
 

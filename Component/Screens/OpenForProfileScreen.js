@@ -442,7 +442,7 @@ firebase.links()
               <View style={styles.ListMenuContainer2}>
           <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
                             console.log('chat screen',this.state.wholeData.id);
-                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id, username:this.props.navigation.state.params.name,userabout:this.state.about,useravatar:this.state.avatar, groupexit:false,groupId:0})
+                            this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id, username:this.props.navigation.state.params.name,userabout:this.state.about,useravatar:this.state.avatar,groupexit:false,groupId:"0",msg_type:"0",userphone:this.state.wholeData.mobile})
                         // this.props.navigation.navigate('ChatDetailScreen',{userid:this.state.wholeData.id})
                       }}>
               <Image

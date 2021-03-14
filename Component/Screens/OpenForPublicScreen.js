@@ -427,23 +427,40 @@ class OpenForPublicScreen extends Component {
       <Text style={styles.storyTextView}>Your Story</Text>
                 </TouchableOpacity>
           {/* <View style={styles.storyContainer}> */}
-             <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ flex: 1, flexDirection: 'row' }}
-              data={this.state.user_stories}
-              keyExtractor={item => item.StoryImage}
-              renderItem={({ item }) =>{
-               return(
-                <TouchableOpacity style={styles.storyItemBox}
-                  onPress={() => {this.props.navigation.navigate('StoryViewScreen',{images:item.avatar,storyImages:item.stories,name:item.name})}}>  
-                  <Image source={item.avatar==null?(this.state.pickedImage):{uri:item.avatar}} style={[styles.ImageViewStyleStory,{ borderColor:item.stories[0].viewer==1?'#06BE7E':'#F01738'}]} />
-      <Text style={styles.storyTextView}>{item.name.substring(0,8)+".."}</Text>    
-                </TouchableOpacity>
-         
-              )}
-               }
-            />
+          <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{flex: 1, flexDirection: 'row'}}
+                data={this.state.user_stories}
+                keyExtractor={item => item.StoryImage}
+                renderItem={({item,index}) => {
+                  console.log('story', JSON.stringify(item))
+                  console.log('item stories viewer',item.stories[0].viewer)
+                   return(
+                    <View>
+                      <TouchableOpacity
+                        style={styles.storyItemBox}
+                        onPress={() => {
+                          this.props.navigation.navigate('StoryViewScreen', {
+                           position:index, images:item.avatar,storyImages:item.stories,name:item.name,userid:item.id,storyArray:this.state.user_stories
+                          })
+                        }}>
+                        <Image
+                          source={
+                            item.avatar == null
+                              ? this.state.pickedImage
+                              : {uri: item.avatar}
+                          }
+                          style={[styles.ImageViewStyleStory,{ borderColor:item.stories[0].viewer==1?'#06BE7E':'#F01738'}]}
+                        />
+
+                        <Text style={styles.storyTextView}>{item.name.substring(0,8)+".."}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )
+              
+                }}
+              />
           {/* </View> */}
           </View>
 

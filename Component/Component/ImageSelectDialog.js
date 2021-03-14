@@ -4,6 +4,7 @@ import {View,Text,TouchableOpacity} from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import Menu, { MenuItem } from 'react-native-material-menu';
 import { withNavigation } from 'react-navigation';
+import firebase from 'react-native-firebase';
 
 export default class ImageSelectDialog extends Component {
   constructor(props) {
@@ -42,6 +43,8 @@ openCamera()
   }).then(image => {
     this.onImagePick(image)
     console.log('picimage===',image);
+  }).catch(error=>{
+    alert('eror',error)
   });
   // ImagePicker.launchCamera(options, (response) => 
   // {
@@ -78,7 +81,8 @@ openGalleryCoverPhoto()
   }).then(image => {
     this.onImagePick(image)
     console.log('pickimage==',image);
-  });
+  }).catch(error=>{
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchImageLibrary(options, (response) => { 
   //   this.onImagePick(response)
   // });
@@ -96,7 +100,8 @@ openGallery()
   }).then(image => {
     this.onImagePick(image)
     console.log('pickimage==',image);
-  });
+  }).catch(error=>{
+    firebase.crashlytics().recordError(error);  });
   // ImagePicker.launchImageLibrary(options, (response) => { 
   //   this.onImagePick(response)
   // });

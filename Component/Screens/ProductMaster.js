@@ -401,7 +401,7 @@ export default class ProductMasterUpdate extends React.Component {
         this.hideLoading();
         if (responseData.code == '200') {
           Toast.show(responseData.message);
-          this.props.navigation.navigate('ProfileScreen');
+          this.props.navigation.goBack();
           console.log('response object actagegg:', responseData)
         } else {
           this.hideLoading();

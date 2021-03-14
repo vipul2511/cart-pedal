@@ -578,10 +578,6 @@ class FavouriteTab extends Component {
         <View style={styles.MainContentBox}>
           <ScrollView>
             <View style={styles.hairline} />
-
-          
-          
-            
             <FlatList
               style={{flex: 1}}
               data={this.state.FavouiteProduct}
@@ -619,14 +615,13 @@ class FavouriteTab extends Component {
                   </View>
                   <View style={styles.ListMenuContainer}>
                     <TouchableOpacity style={styles.messageButtonContainer} onPress={() => {
-            console.log('id of user',item.id);
-            this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,useravatar:item.avatar, groupexit:false,groupId:0})
+                     console.log('id of user',item.id);
+                     this.props.navigation.navigate('ChatDetailScreen',{userid:item.id,username:item.name,useravatar:item.avatar,groupexit:false,groupId:"0",msg_type:"0",userphone:item.mobile})
                       }}>
                         <Image
                           source={require('../images/message_icon.png')}
                           style={styles.messageButtonStyle}></Image>
                     </TouchableOpacity>
-                   
                       <TouchableOpacity style={styles.messageButtonContainer} onPress={()=>{this.AddProductFav(item,index)}}>
                         <Image
                           source={item.favourite==1?this.state.redIcon:this.state.whiteIcon}

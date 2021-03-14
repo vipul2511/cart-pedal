@@ -11,13 +11,15 @@ import resp from 'rn-responsive-font'
 import Spinner from 'react-native-loading-spinner-overlay'
 import Icon from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import ImagePicker from 'react-native-image-crop-picker';
-import ImageModal from 'react-native-image-modal';
 import {downloadFile, DocumentDirectoryPath} from 'react-native-fs';
+import ImageModal from 'react-native-image-modal';
+import FileViewer from 'react-native-file-viewer';
 const screenWidth = Dimensions.get('screen').width;
 let width = Dimensions.get('window').width;
 let height = Dimensions.get('window').height;
-
+const audioRecorderPlayer = new AudioRecorderPlayer();
 export default class ChatProfile extends React.Component {
     constructor(props) {
         super(props);
@@ -44,6 +46,7 @@ export default class ChatProfile extends React.Component {
           imageList : [],
           itemOfProduct:'',
           name:'',
+          audio1:{playing: false, duration: 0, current: 0},
           about:'',
           isEditModalVisible:false,
           userId:'',
@@ -145,6 +148,19 @@ export default class ChatProfile extends React.Component {
         }, 800);
       }
     }
+   downloadAndOpenDocument = async (uri) => {
+     console.log('uri',uri);
+      const parts = uri.split('/');
+      const fileName = parts[parts.length - 1];
+      downloadFile({
+        fromUrl: uri,
+        toFile: `${DocumentDirectoryPath}/${fileName}`,
+      }).promise.then((res) => {
+        FileViewer.open(`${DocumentDirectoryPath}/${fileName}`, {
+          showOpenWithDialog: true,
+        });
+      });
+    };
 
     renderInnerImageList(item, index, separators)
     {
@@ -576,9 +592,9 @@ export default class ChatProfile extends React.Component {
             <Feather name="headphones" color="#fff" size={18}     />
             </View>:item.type=="video"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
             <Feather name="video" color="#fff" size={18}     />
-            </View>:item.type=="file"?<View style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}}>
+            </View>:item.type=="file"?<TouchableOpacity style={{width:45,height:45,backgroundColor:'red',margin:5,borderRadius:8,justifyContent:'center',alignItems:'center'}} onPress={()=>{this.downloadAndOpenDocument(item.attachment)}}>
             <Feather name="file" color="#fff" size={18}     />
-            </View>:null}
+            </TouchableOpacity>:null}
          
         </View>)
       })}
@@ -610,6 +626,29 @@ export default class ChatProfile extends React.Component {
                   </View> */}
        </ScrollView>
        </View>
+       {/* <Modal
+              animationType='slide'
+              transparent={true}
+              visible={this.state.isImageModalVisible}
+              onRequestClose={() => this.closeProfileModal()}>
+              <View style={styles.centeredView}>
+                <View style={styles.ProfilemodalViewStyle}>
+                <TouchableOpacity
+                    style={{alignSelf: 'flex-end'}}
+                    onPress={() => {
+                      this.closeProfileModal() 
+                    }}>
+                    <Image
+                      source={require('../images/modal_close.png')}
+                      style={styles.CloseButtonStyle}
+                    />
+                  </TouchableOpacity>
+                 
+                  
+                 
+                </View>
+              </View>
+            </Modal> */}
       </SafeAreaView>
     );
   }

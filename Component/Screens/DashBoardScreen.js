@@ -375,10 +375,29 @@ forwardlink =async(userid)=>{
       })
       .done()
   }
+  requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          'title': 'App Premission',
+          'message': 'Chat x App need permission.'
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can use the camera");
+      } else {
+        console.log("Camera permission denied");
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
 
   componentDidMount=async ()=> {
     this.focusListener = this.props.navigation.addListener("willFocus", () => {
     // this.showLoading();
+    this.requestCameraPermission();
     this.requestReadContactsPermission();
     AsyncStorage.getItem('@fcmtoken').then(token => {
       if (token) {
@@ -978,9 +997,7 @@ if (notificationOpen) {
                           }
                           style={[styles.ImageViewStyleStory,{ borderColor:item.stories[0].viewer==1?'#06BE7E':'#F01738'}]}
                         />
-                        {/* <Image
-        source={item.status_add_icon}  '#F01738':
-        style={styles.StatusAddStyle}></Image> */}
+
                         <Text style={styles.storyTextView}>{item.name.substring(0,8)+".."}</Text>
                       </TouchableOpacity>
                     </View>
@@ -1108,7 +1125,7 @@ if (notificationOpen) {
                     </View>
                     <View style={styles.ListMenuContainer}>
                       <TouchableOpacity style={styles.messageButtonContainer}  onPress={() => {
-                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id, username:item.name,userabout:item.about,useravatar:item.avatar, groupexit:false,groupId:0})
+                        this.props.navigation.navigate('ChatDetailScreen',{userid:item.id,username:item.name,userabout:item.about,useravatar:item.avatar,groupexit:false,groupId:"0",msg_type:"0",userphone:item.mobile})
                            }}>
                           <Image
                             source={require('../images/message_icon.png')}
@@ -1279,6 +1296,8 @@ if (notificationOpen) {
               style={styles.tabButtonStyle}
               onPress={() => {
                 this.props.navigation.navigate('SettingScreen')
+                // this.props.navigation.navigate('AudioPlayer')
+                
               }}>
               <Image
                 source={require('../images/setting_inactive_icon.png')}
